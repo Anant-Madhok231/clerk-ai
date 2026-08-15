@@ -1,7 +1,10 @@
 {
   "name": "@clerk/desktop",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Clerk — your personal AI admin agent.",
+  "author": "Anant Madhok",
+  "license": "MIT",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -10,7 +13,9 @@
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "test": "vitest run",
     "test:db": "cross-env ELECTRON_RUN_AS_NODE=1 electron ../../node_modules/vitest/vitest.mjs run --config vitest.db.config.ts",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "dist:mac": "electron-vite build && electron-builder --mac; npm run postinstall",
+    "dist:win": "electron-vite build && electron-builder --win --x64"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
@@ -33,6 +38,7 @@
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.10",
     "electron": "36.9.5",
+    "electron-builder": "26.13.0",
     "electron-vite": "^3.1.0",
     "typescript": "^5.9.3",
     "vite": "^5.4.21",

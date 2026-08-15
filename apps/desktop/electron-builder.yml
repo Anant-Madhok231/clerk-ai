@@ -1,0 +1,51 @@
+appId: com.anantmadhok.clerkai
+productName: Clerk
+copyright: Copyright © 2026 Anant Madhok
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - drizzle/migrations/**/*
+  - package.json
+
+asarUnpack:
+  - '**/*.node'
+
+extraResources:
+  - from: resources
+    to: resources
+  - from: build/icons
+    to: build/icons
+
+mac:
+  icon: build/icon.icns
+  category: public.productivity
+  # No Apple Developer identity in this environment — build unsigned rather
+  # than have electron-builder search for a local signing identity.
+  identity: null
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  artifactName: '${productName}-${version}-macOS-${arch}.${ext}'
+
+dmg:
+  title: '${productName} ${version}'
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: '${productName}-Setup-${version}.${ext}'
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
