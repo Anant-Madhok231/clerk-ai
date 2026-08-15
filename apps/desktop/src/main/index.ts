@@ -1,6 +1,6 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
-import { initDatabase } from './db'
+import { initDatabase, getRawConnection } from './db'
 import { registerIpcHandlers } from './ipc/handlers'
 
 function createWindow(): void {
@@ -39,8 +39,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  const db = initDatabase()
-  registerIpcHandlers(db)
+  initDatabase()
+  registerIpcHandlers(getRawConnection())
   createWindow()
 
   app.on('activate', () => {
