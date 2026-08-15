@@ -175,6 +175,7 @@ export function App() {
           <div className={styles.footerLinks}>
             <a href={REPO_URL}>GitHub</a>
             <a href={RELEASES_URL}>Releases</a>
+            <a href="/clerk-ai/privacy.html">Privacy</a>
           </div>
         </div>
       </footer>

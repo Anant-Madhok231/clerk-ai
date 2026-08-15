@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — Clerk</title>
+<link rel="icon" type="image/png" href="/clerk-ai/favicon-32.png" />
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e8e8e8; background: #111; }
+    a { color: #8ab4f8; }
+  }
+  h1 { font-size: 28px; margin-bottom: 4px; }
+  .updated { color: #888; font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 19px; margin-top: 40px; }
+  a { color: #4f46e5; }
+  code { background: rgba(127,127,127,0.15); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>Privacy Policy — Clerk</h1>
+<p class="updated">Last updated August 16, 2026</p>
+
+<p>Clerk is a desktop application that runs entirely on your own computer. This policy explains what data Clerk accesses, where it goes, and how you control it.</p>
+
+<h2>What Clerk stores, and where</h2>
+<p>Everything Clerk tracks — situations, source emails/documents, and your settings — is stored in a single SQLite database file on your own computer, inside your operating system's application data folder. Clerk has no backend server and does not transmit this data anywhere. Nothing you see in the app is uploaded to Anant Madhok, to any analytics service, or to any third party.</p>
+
+<h2>Gmail access</h2>
+<p>If you connect Gmail, Clerk requests read-only access (<code>gmail.readonly</code>) to scan your inbox for actionable items — bills, deadlines, forms, refunds, and similar. Clerk reads message content to classify it, then stores only what it needs (sender, subject, a short excerpt, and the classification) in your local database. Clerk never sends email, never modifies your inbox, and never shares message content with anyone other than the AI classification step you've chosen (see below).</p>
+
+<h2>Google Calendar access</h2>
+<p>If you connect Google Calendar, Clerk requests event-creation access (<code>calendar.events</code>). Clerk only creates a calendar event when you explicitly confirm it in an on-screen dialog — it never creates events automatically, and it does not read your existing calendar.</p>
+
+<h2>AI classification</h2>
+<p>Clerk classifies items using one of two methods, which you choose in Settings:</p>
+<ul>
+<li><strong>Demo Mode (default):</strong> deterministic, local rules. Nothing leaves your computer.</li>
+<li><strong>OpenAI:</strong> if you supply your own OpenAI API key, the text of a source item is sent to OpenAI's API to classify it. This only happens if you've explicitly entered your own key — Clerk has no OpenAI account or key of its own.</li>
+</ul>
+
+<h2>Credential storage</h2>
+<p>OAuth tokens and any API key you provide are encrypted using your operating system's native credential encryption (macOS Keychain-backed <code>safeStorage</code>, or the Windows equivalent) before being stored locally. They are never logged and never leave your computer except to authenticate directly with Google's or OpenAI's own servers.</p>
+
+<h2>Your control over this data</h2>
+<p>From Clerk's Settings screen, at any time, you can:</p>
+<ul>
+<li><strong>Disconnect</strong> Gmail or Google Calendar individually, which revokes Clerk's local access to that account.</li>
+<li><strong>Delete Clerk data</strong>, which permanently removes every tracked situation and source from your local database.</li>
+</ul>
+<p>Because everything lives only on your own computer, uninstalling Clerk and deleting its application data folder removes everything Clerk ever stored.</p>
+
+<h2>No tracking</h2>
+<p>Clerk contains no analytics, telemetry, or crash-reporting integrations of any kind.</p>
+
+<h2>Contact</h2>
+<p>Clerk is developed by Anant Madhok. Questions about this policy or the app can be raised via <a href="https://github.com/Anant-Madhok231/clerk-ai/issues">GitHub Issues</a>.</p>
+
+</body>
+</html>
