@@ -1,0 +1,48 @@
+appId: com.anantmadhok.clerkai
+productName: Clerk
+copyright: Copyright © Anant Madhok
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+extraResources:
+  - from: resources
+    to: resources
+    filter:
+      - "**/*"
+
+mac:
+  category: public.app-category.productivity
+  icon: resources/icon.png
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Signing/notarization are wired up but inert until CI secrets are set
+  # (see .github/workflows/release.yml and docs/release.md). Unsigned
+  # builds still produce an installable, Gatekeeper-warned .dmg.
+dmg:
+  artifactName: "Clerk-${version}-macOS-${arch}.${ext}"
+
+win:
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  artifactName: "Clerk-Setup-${version}.${ext}"
+
+linux:
+  icon: resources/icon.png
+  target:
+    - AppImage
+  category: Office

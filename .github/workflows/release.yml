@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build:core
+      - run: npm run build:agent
+      - run: npm run build --workspace=apps/desktop
+      - name: Build macOS installers
+        env:
+          # Populated from repo secrets once an Apple Developer account is
+          # available. Unsigned builds still produce a valid, installable
+          # .dmg - Gatekeeper will just warn on first open (see docs/release.md).
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npm run dist:mac --workspace=apps/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-installers
+          path: apps/desktop/release/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build:core
+      - run: npm run build:agent
+      - run: npm run build --workspace=apps/desktop
+      - name: Build Windows installer
+        env:
+          # Populated once a code-signing certificate is available. See
+          # docs/release.md for the SmartScreen implications of shipping unsigned.
+          CSC_LINK: ${{ secrets.WIN_CERTIFICATE_PFX_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
+        run: npm run dist:win --workspace=apps/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: apps/desktop/release/*.exe
+
+  publish:
+    needs: [build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/macos-installers/*.dmg
+            dist/windows-installer/*.exe
+          generate_release_notes: true

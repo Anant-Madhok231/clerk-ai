@@ -1,0 +1,41 @@
+{
+  "name": "clerk-ai",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Clerk - your personal AI admin agent",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Anant-Madhok231/clerk-ai.git"
+  },
+  "homepage": "https://Anant-Madhok231.github.io/clerk-ai/",
+  "bugs": "https://github.com/Anant-Madhok231/clerk-ai/issues",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/desktop",
+    "dev:site": "npm run dev --workspace=apps/site",
+    "build": "npm run build:core && npm run build:agent && npm run build --workspaces --if-present",
+    "build:core": "npm run build --workspace=packages/core",
+    "build:agent": "npm run build --workspace=packages/agent",
+    "lint": "eslint . --ext .ts,.tsx",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "dist:mac": "npm run build && npm run dist:mac --workspace=apps/desktop",
+    "dist:win": "npm run build && npm run dist:win --workspace=apps/desktop",
+    "smoke-test": "node scripts/smoke-test.mjs"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.2.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
