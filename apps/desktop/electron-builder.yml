@@ -46,3 +46,4 @@ linux:
   target:
     - AppImage
   category: Office
+electronVersion: 32.1.2
