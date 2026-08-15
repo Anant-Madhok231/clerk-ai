@@ -31,7 +31,11 @@ mac:
       arch:
         - arm64
         - x64
-  artifactName: '${productName}-${version}-macOS-${arch}.${ext}'
+  # Stable across versions on purpose — the website links directly to these
+  # filenames via releases/latest/download/ so it never needs updating per
+  # release. The app's own version lives in the .dmg window title and the
+  # bundle's CFBundleShortVersionString, not the filename.
+  artifactName: '${productName}-macOS-${arch}.${ext}'
 
 dmg:
   title: '${productName} ${version}'
@@ -42,7 +46,8 @@ win:
     - target: nsis
       arch:
         - x64
-  artifactName: '${productName}-Setup-${version}.${ext}'
+  # Stable filename — see the mac artifactName comment above.
+  artifactName: '${productName}-Setup.${ext}'
 
 nsis:
   oneClick: false

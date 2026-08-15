@@ -6,6 +6,12 @@ import styles from './App.module.css'
 const REPO_URL = 'https://github.com/Anant-Madhok231/clerk-ai'
 const RELEASES_URL = 'https://github.com/Anant-Madhok231/clerk-ai/releases'
 
+// Filenames are stable across versions (see electron-builder.yml), so these
+// always resolve to the newest published release without editing this file.
+const DOWNLOAD_MAC_ARM64 = `${RELEASES_URL}/latest/download/Clerk-macOS-arm64.dmg`
+const DOWNLOAD_MAC_X64 = `${RELEASES_URL}/latest/download/Clerk-macOS-x64.dmg`
+const DOWNLOAD_WINDOWS = `${RELEASES_URL}/latest/download/Clerk-Setup.exe`
+
 export function App() {
   return (
     <>
@@ -36,11 +42,8 @@ export function App() {
             your attention. Everything runs locally on your computer.
           </p>
           <div className={styles.heroActions}>
-            <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
-              Download for macOS
-            </a>
-            <a className={`${styles.button} ${styles.buttonSecondary}`} href={RELEASES_URL}>
-              Download for Windows
+            <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_ARM64}>
+              Download for Mac
             </a>
             <a className={`${styles.button} ${styles.buttonSecondary}`} href="#demo">
               Try Demo
@@ -49,6 +52,9 @@ export function App() {
               <GitFork size={15} /> View on GitHub
             </a>
           </div>
+          <p className={styles.heroHint}>
+            Apple Silicon. <a href="#download">Windows or Intel Mac?</a>
+          </p>
         </div>
       </section>
 
@@ -133,9 +139,17 @@ export function App() {
           <div className={styles.downloadGrid}>
             <div className={styles.downloadCard}>
               <ClerkMark size={32} />
-              <h3>macOS</h3>
-              <p>Apple Silicon &amp; Intel</p>
-              <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
+              <h3>Mac — Apple Silicon</h3>
+              <p>M1 and later</p>
+              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_ARM64}>
+                Download .dmg
+              </a>
+            </div>
+            <div className={styles.downloadCard}>
+              <ClerkMark size={32} />
+              <h3>Mac — Intel</h3>
+              <p>2020 and earlier</p>
+              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_X64}>
                 Download .dmg
               </a>
             </div>
@@ -143,11 +157,15 @@ export function App() {
               <ClerkMark size={32} />
               <h3>Windows</h3>
               <p>Windows 10 &amp; 11</p>
-              <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
+              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_WINDOWS}>
                 Download .exe
               </a>
             </div>
           </div>
+          <p className={styles.demoHint}>
+            Not sure which Mac you have? Apple menu → About This Mac. &quot;Chip&quot; means Apple Silicon;
+            &quot;Processor&quot; means Intel.
+          </p>
         </div>
       </section>
 

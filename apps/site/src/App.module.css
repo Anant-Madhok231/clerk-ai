@@ -64,6 +64,16 @@
   flex-wrap: wrap;
 }
 
+.heroHint {
+  margin-top: var(--space-4);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+.heroHint a {
+  color: var(--color-accent);
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -190,7 +200,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-4);
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
