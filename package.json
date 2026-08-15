@@ -1,0 +1,23 @@
+{
+  "name": "clerk-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Clerk — your personal AI admin agent.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/desktop",
+    "build": "npm run build -w apps/desktop",
+    "test": "npm run test -w apps/desktop",
+    "lint": "npm run lint -w apps/desktop",
+    "typecheck": "npm run typecheck -w apps/desktop"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

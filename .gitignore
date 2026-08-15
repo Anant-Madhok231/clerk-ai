@@ -1,0 +1,17 @@
+node_modules/
+dist/
+out/
+.vite/
+*.log
+.DS_Store
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+.env
+.env.local
+.env.*.local
+/release
+coverage/
+.vscode/*
+!.vscode/extensions.json
