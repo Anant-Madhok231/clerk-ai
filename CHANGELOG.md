@@ -22,8 +22,8 @@ Clean rebuild of Clerk. Versioned 1.0.1 rather than 1.0.0 because the existing `
 - System tray (Open Clerk / Check Inbox Now / Pause Monitoring / Settings / Quit Clerk), native notifications, and a background sync scheduler.
 - Original Clerk app icon and branding, generated into every required platform format (`.icns`, `.ico`, tray template, favicon).
 - macOS packaging via electron-builder — built and verified locally (mounted, launched, confirmed via automated inspection).
-- Windows packaging configuration (NSIS) — prepared, not locally verified (no Windows machine in this environment).
-- Replacement GitHub Pages site with an interactive static demo — built locally, not deployed.
+- Windows packaging (NSIS) — builds successfully via GitHub Actions on a real `windows-latest` runner (`release.yml`'s `build-windows` job); installer has not been run/installed on an actual Windows machine.
+- Replacement GitHub Pages site with an interactive static demo, published at https://anant-madhok231.github.io/clerk-ai/ — includes explicit per-platform download buttons (Mac Apple Silicon, Mac Intel, Windows) linking to stable `releases/latest/download/...` URLs that don't need updating on future releases.
 - 71 automated tests (37 plain, 34 exercising SQLite).
 
 ### Known limitations
@@ -31,4 +31,4 @@ Clean rebuild of Clerk. Versioned 1.0.1 rather than 1.0.0 because the existing `
 - Live Gmail/Calendar sync is implemented and unit-tested against mocks but not verified against a real Google account — no OAuth client credentials are configured in this environment.
 - `OpenAIProvider` is implemented and structurally sound but not exercised against the live OpenAI API — no API key configured here.
 - macOS builds are unsigned/non-notarized (no Apple Developer identity available).
-- Windows build is configured but untested locally.
+- Windows installer builds successfully in CI but has not been installed, launched, or uninstalled on a real Windows machine — no Windows machine is available in this environment.
