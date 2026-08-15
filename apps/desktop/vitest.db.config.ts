@@ -16,7 +16,8 @@ export default defineConfig({
     include: [
       'src/main/db/**/*.test.ts',
       'src/main/pipeline/**/*.test.ts',
-      'src/main/demo/**/*.test.ts'
+      'src/main/demo/**/*.test.ts',
+      'src/main/integrations/**/tokenStore.test.ts'
     ]
   }
 })

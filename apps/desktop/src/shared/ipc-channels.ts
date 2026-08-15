@@ -7,7 +7,10 @@
 export const IPC_CHANNELS = {
   loadDemoData: 'demo:load',
   listSituations: 'situation:list',
-  getSituationDetail: 'situation:getDetail'
+  getSituationDetail: 'situation:getDetail',
+  gmailConnect: 'gmail:connect',
+  gmailStatus: 'gmail:status',
+  gmailTestFetch: 'gmail:testFetch'
 } as const
 
 export interface SituationListItem {
@@ -57,8 +60,20 @@ export interface LoadDemoDataResult {
   processedCount: number
 }
 
+export interface GmailStatus {
+  connected: boolean
+}
+
+export interface GmailTestFetchResult {
+  count: number
+  ids: string[]
+}
+
 export interface ClerkApi {
   loadDemoData(): Promise<LoadDemoDataResult>
   listSituations(): Promise<SituationListItem[]>
   getSituationDetail(situationId: string): Promise<SituationDetail | null>
+  gmailConnect(): Promise<GmailStatus>
+  gmailStatus(): Promise<GmailStatus>
+  gmailTestFetch(): Promise<GmailTestFetchResult>
 }

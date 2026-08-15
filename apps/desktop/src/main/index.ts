@@ -3,6 +3,15 @@ import { app, BrowserWindow, shell } from 'electron'
 import { initDatabase } from './db'
 import { registerIpcHandlers } from './ipc/handlers'
 import { createAIProvider } from './ai/createAIProvider'
+import { GmailAdapter } from './integrations/gmail'
+
+function loadLocalEnv(): void {
+  try {
+    process.loadEnvFile(join(app.getAppPath(), '.env.local'))
+  } catch {
+    // No .env.local — expected until a Google OAuth client id is provisioned.
+  }
+}
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -40,12 +49,14 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  loadLocalEnv()
   const db = initDatabase()
   // AI provider selection (demo vs. a user-supplied OpenAI key) becomes a
   // Settings-driven choice once that UI exists; Demo Mode is the only
   // provider wired up so far.
   const aiProvider = createAIProvider({ kind: 'demo' })
-  registerIpcHandlers({ db, aiProvider })
+  const gmailAdapter = new GmailAdapter(db, { clientId: process.env['GMAIL_OAUTH_CLIENT_ID'] ?? '' })
+  registerIpcHandlers({ db, aiProvider, gmailAdapter })
   createWindow()
 
   app.on('activate', () => {
