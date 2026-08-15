@@ -32,6 +32,7 @@ export const IPC_CHANNELS = {
 
   situationsChanged: 'clerk:situationsChanged',
   syncStatusChanged: 'clerk:syncStatusChanged',
+  navigateToSettings: 'clerk:navigateToSettings',
 
   openExternal: 'app:openExternal',
   getAppInfo: 'app:getInfo'
@@ -180,4 +181,5 @@ export interface ClerkApi {
 
   onSituationsChanged(callback: () => void): () => void
   onSyncStatusChanged(callback: () => void): () => void
+  onNavigateToSettings(callback: () => void): () => void
 }

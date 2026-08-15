@@ -7,7 +7,10 @@ import { loadOpenAIApiKey } from './ai/apiKeyStore'
 import { getAppSettings } from './settings/appSettings'
 import { GmailAdapter } from './integrations/gmail'
 import { CalendarAdapter } from './integrations/calendar'
-import { registerMainWindow } from './events/broadcast'
+import { broadcastNavigateToSettings, registerChangeListener, registerMainWindow } from './events/broadcast'
+import { createTray, refreshTray, type TrayDependencies } from './tray/createTray'
+import { checkGmailNow } from './sync/checkNow'
+import { startBackgroundScheduler } from './sync/backgroundScheduler'
 import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
@@ -32,7 +35,16 @@ function resolveAIProvider(db: Db) {
   return createAIProvider(config)
 }
 
-function createWindow(): BrowserWindow {
+function windowIconPath(): string {
+  // Ignored on macOS (the .app bundle icon from build/icon.icns is what's
+  // shown); used for the Windows/Linux taskbar icon.
+  const base = app.isPackaged ? process.resourcesPath : app.getAppPath()
+  return join(base, 'build/icons/256x256.png')
+}
+
+let isQuitting = false
+
+function createWindow(db: Db): BrowserWindow {
   const window = new BrowserWindow({
     width: 1180,
     height: 760,
@@ -41,6 +53,7 @@ function createWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#f6f5f2',
     title: 'Clerk',
+    icon: windowIconPath(),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -58,6 +71,17 @@ function createWindow(): BrowserWindow {
     if (url !== window.webContents.getURL()) {
       event.preventDefault()
       shell.openExternal(url)
+    }
+  })
+
+  // With background monitoring on, closing the window hides Clerk (it keeps
+  // syncing from the tray) rather than quitting — "Quit Clerk" in the tray
+  // menu is the explicit way out.
+  window.on('close', (event) => {
+    if (isQuitting) return
+    if (getAppSettings(db).backgroundMonitoringEnabled) {
+      event.preventDefault()
+      window.hide()
     }
   })
 
@@ -82,14 +106,50 @@ app.whenReady().then(() => {
   const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId })
   registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdapter })
 
-  const window = createWindow()
+  let window = createWindow(db)
   registerMainWindow(window)
+
+  function showWindow(): void {
+    if (window.isDestroyed()) {
+      window = createWindow(db)
+      registerMainWindow(window)
+    }
+    window.show()
+    window.focus()
+  }
+
+  const trayDeps: TrayDependencies = {
+    db,
+    showWindow,
+    openSettings: () => {
+      showWindow()
+      broadcastNavigateToSettings()
+    },
+    checkNow: async () => {
+      await checkGmailNow({ db, aiProvider, gmailAdapter })
+    },
+    quit: () => {
+      isQuitting = true
+      app.quit()
+    }
+  }
+  createTray(trayDeps)
+  registerChangeListener(() => refreshTray(trayDeps))
+
+  startBackgroundScheduler({ db, aiProvider, gmailAdapter })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      registerMainWindow(createWindow())
+      window = createWindow(db)
+      registerMainWindow(window)
+    } else {
+      showWindow()
     }
   })
+})
+
+app.on('before-quit', () => {
+  isQuitting = true
 })
 
 app.on('window-all-closed', () => {

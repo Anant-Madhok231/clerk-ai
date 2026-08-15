@@ -22,6 +22,8 @@ function Shell() {
   const selectedSituationId = useNavStore((state) => state.selectedSituationId)
   const goTo = useNavStore((state) => state.goTo)
 
+  useEffect(() => window.clerk.onNavigateToSettings(() => goTo('settings')), [goTo])
+
   const { data: settings, isLoading } = useQuery({
     queryKey: queryKeys.settings,
     queryFn: () => window.clerk.getSettings()

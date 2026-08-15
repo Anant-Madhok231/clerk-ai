@@ -44,6 +44,11 @@ const clerkApi: ClerkApi = {
     const listener = (): void => callback()
     ipcRenderer.on(IPC_CHANNELS.syncStatusChanged, listener)
     return () => ipcRenderer.removeListener(IPC_CHANNELS.syncStatusChanged, listener)
+  },
+  onNavigateToSettings: (callback) => {
+    const listener = (): void => callback()
+    ipcRenderer.on(IPC_CHANNELS.navigateToSettings, listener)
+    return () => ipcRenderer.removeListener(IPC_CHANNELS.navigateToSettings, listener)
   }
 }
 

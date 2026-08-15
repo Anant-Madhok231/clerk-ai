@@ -32,7 +32,8 @@ import { deleteAllSituationData } from '../situations/deleteAllData'
 import { importDocument } from '../documents/importDocument'
 import { getAppSettings, updateAppSettings } from '../settings/appSettings'
 import { clearOpenAIApiKey, loadOpenAIApiKey, saveOpenAIApiKey } from '../ai/apiKeyStore'
-import { getSyncStatus, recordCheckCompleted, setChecking } from '../sync/syncStatus'
+import { getSyncStatus } from '../sync/syncStatus'
+import { checkGmailNow } from '../sync/checkNow'
 import { broadcastSituationsChanged, broadcastSyncStatusChanged } from '../events/broadcast'
 
 export interface IpcDependencies {
@@ -90,18 +91,8 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
   })
 
   ipcMain.handle(IPC_CHANNELS.gmailCheckNow, async (): Promise<GmailCheckNowResult> => {
-    if (!gmailAdapter.isConnected()) return { checked: false, processedCount: 0 }
-    setChecking(true)
-    broadcastSyncStatusChanged()
-    try {
-      const results = await gmailAdapter.sync(aiProvider)
-      recordCheckCompleted(db)
-      broadcastSituationsChanged()
-      return { checked: true, processedCount: results.length }
-    } finally {
-      setChecking(false)
-      broadcastSyncStatusChanged()
-    }
+    const { checked, results } = await checkGmailNow({ db, aiProvider, gmailAdapter })
+    return { checked, processedCount: results.length }
   })
 
   // --- Calendar -----------------------------------------------------
