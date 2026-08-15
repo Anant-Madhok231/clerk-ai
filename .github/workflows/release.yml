@@ -1,0 +1,59 @@
+# Prepared locally, not yet run against the production repository — see
+# PRODUCT_SPEC.md §0. Do not push a `v*` tag or run this workflow_dispatch
+# until the local rebuild has been migrated into Anant-Madhok231/clerk-ai
+# with explicit authorization; until then this file has no effect (Actions
+# only run once this repo becomes the remote's default branch content).
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm install
+      - run: npm run dist:mac -w apps/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: apps/desktop/release/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm install
+      - run: npm run dist:win -w apps/desktop
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: apps/desktop/release/*.exe
+
+  publish-release:
+    needs: [build-mac, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/macos-dmg/*.dmg
+            artifacts/windows-installer/*.exe
+          draft: true
+          generate_release_notes: true

@@ -1,0 +1,41 @@
+# Prepared locally, not yet run against the production repository — see
+# PRODUCT_SPEC.md §0. This file only takes effect once the local rebuild is
+# migrated into Anant-Madhok231/clerk-ai with explicit authorization.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # Electron's binary links against these even in headless/run-as-node
+      # mode (used by the db-backed test suite) — not needed on macOS/Windows.
+      - name: Install Electron runtime dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libnss3 libasound2t64 libxss1
+
+      - run: npm install
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run test:db
+      - run: npm run build
+      - run: npm run build:site
