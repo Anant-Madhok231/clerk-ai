@@ -2,9 +2,9 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [1.0.0] — 2026-08-15 (local, unreleased)
+## [1.0.1] — 2026-08-15
 
-Clean rebuild of Clerk. Not yet published to `Anant-Madhok231/clerk-ai` — this version exists in the local rebuild only, pending explicit migration authorization.
+Clean rebuild of Clerk. Versioned 1.0.1 rather than 1.0.0 because the existing `Anant-Madhok231/clerk-ai` repository already had a `v1.0.0` tag from the prior implementation, preserved untouched at the `legacy-before-clean-rebuild` tag and `legacy-cowork-build` branch.
 
 ### Added
 
