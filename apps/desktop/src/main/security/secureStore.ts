@@ -37,3 +37,12 @@ export function loadSecureValue<T>(db: Db, key: string): T | null {
 export function clearSecureValue(db: Db, key: string): void {
   db.delete(settings).where(eq(settings.key, key)).run()
 }
+
+/** Binds save/load/clear to one settings key — the pattern behind Gmail tokens, Calendar tokens, and the OpenAI API key, which otherwise all reimplement the same three-line wrapper. */
+export function createSecureRecordStore<T>(key: string) {
+  return {
+    save: (db: Db, value: T): void => saveSecureValue(db, key, value),
+    load: (db: Db): T | null => loadSecureValue<T>(db, key),
+    clear: (db: Db): void => clearSecureValue(db, key)
+  }
+}
