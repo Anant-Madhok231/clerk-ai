@@ -10,6 +10,11 @@ files:
   - out/**/*
   - drizzle/migrations/**/*
   - package.json
+  # Non-secret OAuth client id (PKCE, no client secret) so downloaded
+  # builds can connect Gmail/Calendar without the user provisioning their
+  # own Google Cloud project. Written by release.yml from a repo secret;
+  # absent locally until you run the setup, which loadLocalEnv() handles.
+  - .env.local
 
 asarUnpack:
   - '**/*.node'

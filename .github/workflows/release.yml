@@ -21,6 +21,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm install
+      - name: Write OAuth client id (non-secret, PKCE — see googleOAuthConnection.ts)
+        run: echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
       - run: npm run dist:mac -w apps/desktop
       - uses: actions/upload-artifact@v4
         with:
@@ -36,6 +38,9 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm install
+      - name: Write OAuth client id (non-secret, PKCE — see googleOAuthConnection.ts)
+        shell: bash
+        run: echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
       - run: npm run dist:win -w apps/desktop
       - uses: actions/upload-artifact@v4
         with:

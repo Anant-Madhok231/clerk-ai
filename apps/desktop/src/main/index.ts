@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { initDatabase } from './db'
@@ -15,7 +16,17 @@ import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
   try {
-    process.loadEnvFile(join(app.getAppPath(), '.env.local'))
+    // Not process.loadEnvFile: its native implementation reads straight off
+    // disk and doesn't go through Electron's asar-patched fs, so it silently
+    // fails to find this file once it's packaged inside app.asar. Plain
+    // fs.readFileSync does go through that patch, in dev and packaged alike.
+    const raw = readFileSync(join(app.getAppPath(), '.env.local'), 'utf8')
+    for (const line of raw.split('\n')) {
+      const match = /^([A-Z_][A-Z0-9_]*)=(.*)$/.exec(line.trim())
+      const key = match?.[1]
+      const value = match?.[2]
+      if (key !== undefined && value !== undefined) process.env[key] = value
+    }
   } catch {
     // No .env.local — expected until a Google OAuth client id is provisioned.
   }
