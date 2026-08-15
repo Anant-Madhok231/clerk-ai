@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "postinstall": "npm run postinstall -w apps/desktop",
     "dev": "npm run dev -w apps/desktop",
     "build": "npm run build -w apps/desktop",
     "test": "npm run test -w apps/desktop",
