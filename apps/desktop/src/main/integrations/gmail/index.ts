@@ -1,14 +1,10 @@
-import { shell } from 'electron'
 import type { Db } from '../../db/client'
-import {
-  buildAuthorizationUrl,
-  exchangeCodeForTokens,
-  generatePkcePair,
-  generateState
-} from './oauthClient'
-import { startLoopbackServer } from './loopbackServer'
+import type { AIProvider } from '../../ai/AIProvider'
+import { processSourceItem, type ProcessResult } from '../../pipeline/processSourceItem'
+import { GOOGLE_SCOPES } from '../google/oauthClient'
+import { performGoogleOAuthConnection } from '../google/googleOAuthConnection'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
-import { listRecentMessageIds, type GmailMessageListItem } from './gmailClient'
+import { getMessage, listRecentMessageIds, type GmailMessageListItem } from './gmailClient'
 
 export interface GmailAdapterOptions {
   clientId: string
@@ -16,9 +12,8 @@ export interface GmailAdapterOptions {
 
 /**
  * Facade over the Gmail OAuth + API plumbing: system-browser consent ->
- * loopback redirect -> encrypted token storage -> bounded API calls. Real
- * sync (mapping messages to SourceItems, incremental history) is a later
- * phase; this proves the connection itself works end to end.
+ * loopback redirect -> encrypted token storage -> bounded API calls ->
+ * (via sync()) the same processSourceItem pipeline Demo Mode uses.
  */
 export class GmailAdapter {
   constructor(
@@ -31,41 +26,12 @@ export class GmailAdapter {
   }
 
   async connect(): Promise<void> {
-    if (!this.options.clientId) {
-      throw new Error(
-        'Gmail OAuth client id is not configured — set GMAIL_OAUTH_CLIENT_ID in apps/desktop/.env.local.'
-      )
-    }
-    const { codeVerifier, codeChallenge } = generatePkcePair()
-    const state = generateState()
-    const loopback = await startLoopbackServer()
-
-    try {
-      const authUrl = buildAuthorizationUrl({
-        clientId: this.options.clientId,
-        redirectUri: loopback.redirectUri,
-        codeChallenge,
-        state
-      })
-      await shell.openExternal(authUrl)
-
-      const { code } = await loopback.waitForCode(state)
-      const tokens = await exchangeCodeForTokens({
-        clientId: this.options.clientId,
-        redirectUri: loopback.redirectUri,
-        code,
-        codeVerifier
-      })
-
-      saveTokens(this.db, {
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-        expiresAt: Date.now() + tokens.expiresIn * 1000,
-        scope: tokens.scope
-      })
-    } finally {
-      await loopback.close()
-    }
+    const tokens = await performGoogleOAuthConnection({
+      clientId: this.options.clientId,
+      scope: GOOGLE_SCOPES.gmailReadonly,
+      serviceName: 'Gmail'
+    })
+    saveTokens(this.db, tokens)
   }
 
   disconnect(): void {
@@ -76,5 +42,36 @@ export class GmailAdapter {
     const tokens = loadTokens(this.db)
     if (!tokens) throw new Error('Gmail is not connected.')
     return listRecentMessageIds(tokens.accessToken, { maxResults: limit })
+  }
+
+  /**
+   * Bounded fetch (default 20, last 30 days per gmailClient's query) of
+   * message metadata, normalized and run through the same ingestion
+   * pipeline Demo Mode uses. Not incremental (no Gmail history cursor) —
+   * relies on processSourceItem's provider/providerId dedupe to make
+   * repeated calls cheap rather than tracking a sync cursor.
+   */
+  async sync(aiProvider: AIProvider, maxResults = 20): Promise<ProcessResult[]> {
+    const tokens = loadTokens(this.db)
+    if (!tokens) throw new Error('Gmail is not connected.')
+
+    const messages = await listRecentMessageIds(tokens.accessToken, { maxResults })
+    const results: ProcessResult[] = []
+    for (const { id } of messages) {
+      const detail = await getMessage(tokens.accessToken, id)
+      results.push(
+        await processSourceItem(this.db, aiProvider, {
+          sourceType: 'gmail',
+          provider: 'gmail',
+          providerId: detail.id,
+          threadId: detail.threadId,
+          sender: detail.from,
+          subject: detail.subject,
+          snippet: detail.snippet,
+          receivedAt: new Date(Number(detail.internalDate)).toISOString()
+        })
+      )
+    }
+    return results
   }
 }

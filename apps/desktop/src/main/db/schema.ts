@@ -40,6 +40,7 @@ export const situation = sqliteTable('situation', {
   waitingOn: text('waiting_on'),
   confidence: real('confidence').notNull(),
   userConfirmed: integer('user_confirmed', { mode: 'boolean' }).notNull().default(false),
+  calendarEventId: text('calendar_event_id'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
   resolvedAt: text('resolved_at')

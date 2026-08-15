@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  GOOGLE_SCOPES,
   buildAuthorizationUrl,
   exchangeCodeForTokens,
   generatePkcePair,
@@ -40,7 +41,8 @@ describe('buildAuthorizationUrl', () => {
         clientId: 'client-123',
         redirectUri: 'http://127.0.0.1:5000/callback',
         codeChallenge: 'challenge-abc',
-        state: 'state-xyz'
+        state: 'state-xyz',
+        scope: GOOGLE_SCOPES.gmailReadonly
       })
     )
     expect(url.origin + url.pathname).toBe('https://accounts.google.com/o/oauth2/v2/auth')

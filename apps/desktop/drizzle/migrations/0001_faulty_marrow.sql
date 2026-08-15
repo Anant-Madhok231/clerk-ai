@@ -1,0 +1,1 @@
+ALTER TABLE `situation` ADD `calendar_event_id` text;

@@ -2,7 +2,11 @@ import { createHash, randomBytes } from 'node:crypto'
 
 const AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth'
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token'
-const GMAIL_READONLY_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly'
+
+export const GOOGLE_SCOPES = {
+  gmailReadonly: 'https://www.googleapis.com/auth/gmail.readonly',
+  calendarEvents: 'https://www.googleapis.com/auth/calendar.events'
+} as const
 
 export interface PkcePair {
   codeVerifier: string
@@ -25,6 +29,7 @@ export interface AuthorizationUrlOptions {
   redirectUri: string
   codeChallenge: string
   state: string
+  scope: string
 }
 
 export function buildAuthorizationUrl(options: AuthorizationUrlOptions): string {
@@ -32,7 +37,7 @@ export function buildAuthorizationUrl(options: AuthorizationUrlOptions): string 
   url.searchParams.set('client_id', options.clientId)
   url.searchParams.set('redirect_uri', options.redirectUri)
   url.searchParams.set('response_type', 'code')
-  url.searchParams.set('scope', GMAIL_READONLY_SCOPE)
+  url.searchParams.set('scope', options.scope)
   url.searchParams.set('code_challenge', options.codeChallenge)
   url.searchParams.set('code_challenge_method', 'S256')
   url.searchParams.set('state', options.state)

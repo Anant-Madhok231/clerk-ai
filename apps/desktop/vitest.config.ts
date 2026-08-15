@@ -9,12 +9,8 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    exclude: [
-      '**/node_modules/**',
-      'src/main/db/**/*.test.ts',
-      'src/main/pipeline/**/*.test.ts',
-      'src/main/demo/**/*.test.ts',
-      'src/main/integrations/**/tokenStore.test.ts'
-    ]
+    // *.db.test.ts files touch better-sqlite3 (compiled against Electron's
+    // ABI) and run separately via vitest.db.config.ts / the test:db script.
+    exclude: ['**/node_modules/**', '**/*.db.test.ts']
   }
 })
