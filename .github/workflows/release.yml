@@ -19,15 +19,15 @@ jobs:
       - run: npm run build --workspace=apps/desktop
       - name: Build macOS installers
         env:
-          # Populated from repo secrets once an Apple Developer account is
-          # available. Unsigned builds still produce a valid, installable
-          # .dmg - Gatekeeper will just warn on first open (see docs/release.md).
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE_P12_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npm run dist:mac --workspace=apps/desktop
+        run: |
+          [ -z "$CSC_LINK" ] && unset CSC_LINK
+          [ -z "$CSC_KEY_PASSWORD" ] && unset CSC_KEY_PASSWORD
+          npm run dist:mac --workspace=apps/desktop
       - uses: actions/upload-artifact@v4
         with:
           name: macos-installers
@@ -46,11 +46,12 @@ jobs:
       - run: npm run build --workspace=apps/desktop
       - name: Build Windows installer
         env:
-          # Populated once a code-signing certificate is available. See
-          # docs/release.md for the SmartScreen implications of shipping unsigned.
           CSC_LINK: ${{ secrets.WIN_CERTIFICATE_PFX_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
-        run: npm run dist:win --workspace=apps/desktop
+        run: |
+          if (-not $env:CSC_LINK) { Remove-Item Env:\CSC_LINK -ErrorAction SilentlyContinue }
+          if (-not $env:CSC_KEY_PASSWORD) { Remove-Item Env:\CSC_KEY_PASSWORD -ErrorAction SilentlyContinue }
+          npm run dist:win --workspace=apps/desktop
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
