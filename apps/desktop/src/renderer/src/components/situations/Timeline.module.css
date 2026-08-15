@@ -1,0 +1,57 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.railColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.dotIcon {
+  width: 13px;
+  height: 13px;
+}
+
+.rail {
+  width: 2px;
+  flex: 1;
+  background: var(--color-border);
+  margin: 2px 0;
+  min-height: 20px;
+}
+
+.body {
+  padding-bottom: var(--space-5);
+  padding-top: 2px;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-top: 2px;
+}

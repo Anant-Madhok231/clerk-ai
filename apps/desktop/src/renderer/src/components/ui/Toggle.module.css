@@ -1,0 +1,56 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--color-border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--motion-fast) var(--motion-ease);
+}
+
+.switchOn {
+  background: var(--color-accent);
+}
+
+.knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.knobOn {
+  transform: translateX(16px);
+}
