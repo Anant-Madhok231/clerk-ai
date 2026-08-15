@@ -71,8 +71,19 @@ async function generateTrayIcons() {
   console.log('✓ tray icons ->', outDir)
 }
 
+async function generateSiteFavicon() {
+  const outDir = join(repoRoot, 'apps/site/public')
+  mkdirSync(outDir, { recursive: true })
+  await renderPng(masterSvg, 32, join(outDir, 'favicon-32.png'))
+  await renderPng(masterSvg, 180, join(outDir, 'apple-touch-icon.png'))
+  const icoBuffer = await pngToIco([join(outDir, 'favicon-32.png')])
+  writeFileSync(join(outDir, 'favicon.ico'), icoBuffer)
+  console.log('✓ site favicon ->', outDir)
+}
+
 await generatePngSet()
 await generateIcns()
 await generateIco()
 await generateTrayIcons()
+await generateSiteFavicon()
 console.log('Done.')

@@ -1,0 +1,165 @@
+import { ArrowRight, FileText, GitFork, Lock, Mail, Sparkles, Zap } from 'lucide-react'
+import { ClerkMark } from './components/ClerkMark'
+import { DemoApp } from './components/DemoApp'
+import styles from './App.module.css'
+
+const REPO_URL = 'https://github.com/Anant-Madhok231/clerk-ai'
+const RELEASES_URL = 'https://github.com/Anant-Madhok231/clerk-ai/releases'
+
+export function App() {
+  return (
+    <>
+      <header className="container">
+        <nav className={styles.nav}>
+          <div className={styles.navBrand}>
+            <ClerkMark size={24} />
+            Clerk
+          </div>
+          <div className={styles.navLinks}>
+            <a href="#how-it-works">How it works</a>
+            <a href="#demo">Demo</a>
+            <a href="#download">Download</a>
+            <a href={REPO_URL}>GitHub</a>
+          </div>
+        </nav>
+      </header>
+
+      <section className="container">
+        <div className={styles.hero}>
+          <div className={styles.heroMark}>
+            <ClerkMark size={64} />
+          </div>
+          <h1 className={styles.heroTitle}>Clerk</h1>
+          <p className={styles.heroTagline}>Your personal AI admin agent.</p>
+          <p className={styles.heroBody}>
+            Clerk reads the boring stuff — bills, forms, refunds, deadlines — and tells you what actually needs
+            your attention. Everything runs locally on your computer.
+          </p>
+          <div className={styles.heroActions}>
+            <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
+              Download for macOS
+            </a>
+            <a className={`${styles.button} ${styles.buttonSecondary}`} href={RELEASES_URL}>
+              Download for Windows
+            </a>
+            <a className={`${styles.button} ${styles.buttonSecondary}`} href="#demo">
+              Try Demo
+            </a>
+            <a className={`${styles.button} ${styles.buttonSecondary}`} href={REPO_URL}>
+              <GitFork size={15} /> View on GitHub
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section className="container" id="how-it-works">
+        <div className={`${styles.section} ${styles.sectionCentered}`}>
+          <h2 className={styles.sectionTitle}>How it works</h2>
+          <p className={styles.sectionSubtitle}>
+            Clerk runs every incoming source through the same ingestion and matching pipeline, so several messages
+            about one real-world issue update a single tracked situation instead of creating duplicate tasks.
+          </p>
+          <div className={styles.flowRow}>
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>
+                <Mail size={24} />
+              </div>
+              <span className={styles.flowLabel}>Email / Document</span>
+            </div>
+            <ArrowRight className={styles.flowArrow} />
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>
+                <ClerkMark size={24} />
+              </div>
+              <span className={styles.flowLabel}>Clerk</span>
+            </div>
+            <ArrowRight className={styles.flowArrow} />
+            <div className={styles.flowStep}>
+              <div className={styles.flowIcon}>
+                <Zap size={24} />
+              </div>
+              <span className={styles.flowLabel}>Action / Waiting / Completed</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container" id="demo">
+        <div className={`${styles.section} ${styles.sectionCentered}`}>
+          <h2 className={styles.sectionTitle}>See it in action</h2>
+          <p className={styles.sectionSubtitle}>
+            Seeded, static data — no login, no credentials. Click into a situation to see its timeline.
+          </p>
+          <div className={styles.demoWrap}>
+            <DemoApp />
+          </div>
+          <p className={styles.demoHint}>
+            This mirrors the real app's Demo Mode, which runs the same fixtures through Clerk's actual ingestion
+            pipeline rather than showing pre-built cards.
+          </p>
+        </div>
+      </section>
+
+      <section className="container">
+        <div className={`${styles.section} ${styles.sectionCentered}`}>
+          <h2 className={styles.sectionTitle}>Local-first, by design</h2>
+          <p className={styles.sectionSubtitle}>
+            Clerk keeps your data on your computer, not in the cloud.
+          </p>
+          <div className={styles.privacyGrid}>
+            <div className={styles.privacyCard}>
+              <Lock size={20} color="var(--color-accent)" />
+              <h3>Local storage</h3>
+              <p>Situations, sources, and settings live in a SQLite database on your machine.</p>
+            </div>
+            <div className={styles.privacyCard}>
+              <FileText size={20} color="var(--color-accent)" />
+              <h3>Source traceability</h3>
+              <p>Every situation links back to the exact email or document it came from.</p>
+            </div>
+            <div className={styles.privacyCard}>
+              <Sparkles size={20} color="var(--color-accent)" />
+              <h3>Revocable access</h3>
+              <p>Disconnect Gmail or Calendar, or delete all Clerk data, any time from Settings.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="container" id="download">
+        <div className={`${styles.section} ${styles.sectionCentered}`}>
+          <h2 className={styles.sectionTitle}>Download Clerk</h2>
+          <p className={styles.sectionSubtitle}>Free, no account required to try Demo Mode.</p>
+          <div className={styles.downloadGrid}>
+            <div className={styles.downloadCard}>
+              <ClerkMark size={32} />
+              <h3>macOS</h3>
+              <p>Apple Silicon &amp; Intel</p>
+              <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
+                Download .dmg
+              </a>
+            </div>
+            <div className={styles.downloadCard}>
+              <ClerkMark size={32} />
+              <h3>Windows</h3>
+              <p>Windows 10 &amp; 11</p>
+              <a className={`${styles.button} ${styles.buttonPrimary}`} href={RELEASES_URL}>
+                Download .exe
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="container">
+        <div className={styles.footer}>
+          <span>Clerk — © 2026 Anant Madhok</span>
+          <div className={styles.footerLinks}>
+            <a href={REPO_URL}>GitHub</a>
+            <a href={RELEASES_URL}>Releases</a>
+          </div>
+        </div>
+      </footer>
+    </>
+  )
+}
