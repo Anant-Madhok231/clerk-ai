@@ -113,8 +113,9 @@ app.whenReady().then(() => {
   const db = initDatabase()
   const aiProvider = resolveAIProvider(db)
   const googleClientId = process.env['GOOGLE_OAUTH_CLIENT_ID'] ?? ''
-  const gmailAdapter = new GmailAdapter(db, { clientId: googleClientId })
-  const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId })
+  const googleClientSecret = process.env['GOOGLE_OAUTH_CLIENT_SECRET'] ?? ''
+  const gmailAdapter = new GmailAdapter(db, { clientId: googleClientId, clientSecret: googleClientSecret })
+  const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId, clientSecret: googleClientSecret })
   registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdapter })
 
   let window = createWindow(db)

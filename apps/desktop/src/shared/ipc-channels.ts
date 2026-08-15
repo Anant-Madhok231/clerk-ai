@@ -17,6 +17,7 @@ export const IPC_CHANNELS = {
 
   calendarConnect: 'calendar:connect',
   calendarDisconnect: 'calendar:disconnect',
+  calendarListUpcoming: 'calendar:listUpcoming',
 
   getSyncStatus: 'sync:getStatus',
 
@@ -94,6 +95,13 @@ export interface CalendarStatus {
   connected: boolean
 }
 
+export interface UpcomingCalendarEventView {
+  id: string
+  title: string
+  start: string
+  isAllDay: boolean
+}
+
 export interface SyncStatus {
   gmailConnected: boolean
   calendarConnected: boolean
@@ -163,6 +171,7 @@ export interface ClerkApi {
 
   calendarConnect(): Promise<CalendarStatus>
   calendarDisconnect(): Promise<CalendarStatus>
+  calendarListUpcoming(): Promise<UpcomingCalendarEventView[]>
 
   getSyncStatus(): Promise<SyncStatus>
 

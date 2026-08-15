@@ -13,7 +13,13 @@ export interface PkcePair {
   codeChallenge: string
 }
 
-/** PKCE (RFC 7636) — no client secret, the desktop-app OAuth pattern Google recommends for installed apps. */
+/**
+ * PKCE (RFC 7636) protects the authorization code from interception — the
+ * actual security mechanism for a desktop app, since this client secret
+ * ships inside every install and can't be kept confidential. Google's token
+ * endpoint still requires it as a request parameter for "Desktop app"-type
+ * clients even though it isn't treated as secret in this threat model.
+ */
 export function generatePkcePair(): PkcePair {
   const codeVerifier = randomBytes(32).toString('base64url')
   const codeChallenge = createHash('sha256').update(codeVerifier).digest('base64url')
@@ -56,6 +62,7 @@ export interface TokenResponse {
 
 export interface ExchangeCodeOptions {
   clientId: string
+  clientSecret: string
   redirectUri: string
   code: string
   codeVerifier: string
@@ -69,6 +76,7 @@ export async function exchangeCodeForTokens(options: ExchangeCodeOptions): Promi
     code: options.code,
     redirect_uri: options.redirectUri,
     client_id: options.clientId,
+    client_secret: options.clientSecret,
     code_verifier: options.codeVerifier
   })
 

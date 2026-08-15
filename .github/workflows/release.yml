@@ -21,8 +21,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm install
-      - name: Write OAuth client id (non-secret, PKCE — see googleOAuthConnection.ts)
-        run: echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
+      - name: Write OAuth credentials (see googleOAuthConnection.ts for why Google still requires a client_secret param here despite PKCE)
+        run: |
+          echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
+          echo "GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}" >> apps/desktop/.env.local
       - run: npm run dist:mac -w apps/desktop
       - uses: actions/upload-artifact@v4
         with:
@@ -38,9 +40,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm install
-      - name: Write OAuth client id (non-secret, PKCE — see googleOAuthConnection.ts)
+      - name: Write OAuth credentials (see googleOAuthConnection.ts for why Google still requires a client_secret param here despite PKCE)
         shell: bash
-        run: echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
+        run: |
+          echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}" > apps/desktop/.env.local
+          echo "GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}" >> apps/desktop/.env.local
       - run: npm run dist:win -w apps/desktop
       - uses: actions/upload-artifact@v4
         with:

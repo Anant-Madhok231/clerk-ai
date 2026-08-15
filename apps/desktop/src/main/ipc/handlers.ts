@@ -18,7 +18,8 @@ import type {
   LoadDemoDataResult,
   SituationDetail,
   SituationListItem,
-  SyncStatus
+  SyncStatus,
+  UpcomingCalendarEventView
 } from '@shared/ipc-channels'
 import type { Db } from '../db/client'
 import type { AIProvider } from '../ai/AIProvider'
@@ -106,6 +107,11 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
     calendarAdapter.disconnect()
     broadcastSyncStatusChanged()
     return { connected: false }
+  })
+
+  ipcMain.handle(IPC_CHANNELS.calendarListUpcoming, async (): Promise<UpcomingCalendarEventView[]> => {
+    if (!calendarAdapter.isConnected()) return []
+    return calendarAdapter.listUpcomingEvents()
   })
 
   // --- Sync status --------------------------------------------------

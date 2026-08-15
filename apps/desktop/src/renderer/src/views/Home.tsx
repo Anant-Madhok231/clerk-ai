@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Inbox } from 'lucide-react'
+import { Calendar, Inbox } from 'lucide-react'
 import { queryKeys } from '../lib/queryClient'
 import { PageHeader } from '../components/layout/PageHeader'
 import { SituationList } from '../components/situations/SituationList'
 import { EmptyState } from '../components/ui/EmptyState'
+import styles from './Home.module.css'
 
 function greeting(): string {
   const hour = new Date().getHours()
@@ -13,10 +14,29 @@ function greeting(): string {
   return 'Good evening.'
 }
 
+/** "Today, 3:00 PM" / "Tomorrow" (all-day) / "Wed, Aug 19, 3:00 PM" — never bare ISO. */
+function formatEventStart(start: string, isAllDay: boolean): string {
+  const date = new Date(isAllDay ? `${start}T00:00:00` : start)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(now.getDate() + 1)
+  const isTomorrow = date.toDateString() === tomorrow.toDateString()
+
+  const dayLabel = isToday ? 'Today' : isTomorrow ? 'Tomorrow' : date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+  if (isAllDay) return dayLabel
+  return `${dayLabel}, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
+}
+
 export function Home() {
   const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.situations,
     queryFn: () => window.clerk.listSituations()
+  })
+
+  const { data: upcomingEvents } = useQuery({
+    queryKey: queryKeys.upcomingCalendarEvents,
+    queryFn: () => window.clerk.calendarListUpcoming()
   })
 
   const { needsAttention, upcoming, waiting, recentlyCompleted } = useMemo(() => {
@@ -58,6 +78,23 @@ export function Home() {
             : "You're all caught up."
         }
       />
+
+      {upcomingEvents && upcomingEvents.length > 0 && (
+        <section className="clerk-section">
+          <p className="clerk-section-title">Upcoming meetings</p>
+          <div className={styles.card}>
+            {upcomingEvents.map((event) => (
+              <div key={event.id} className={styles.row}>
+                <Calendar size={16} />
+                <div>
+                  <p className={styles.rowLabel}>{event.title}</p>
+                  <p className={styles.rowDetail}>{formatEventStart(event.start, event.isAllDay)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {needsAttention.length > 0 && (
         <section className="clerk-section">

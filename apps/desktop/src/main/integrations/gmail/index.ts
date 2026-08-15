@@ -8,6 +8,7 @@ import { getMessage, listRecentMessageIds, type GmailMessageListItem } from './g
 
 export interface GmailAdapterOptions {
   clientId: string
+  clientSecret: string
 }
 
 /**
@@ -28,6 +29,7 @@ export class GmailAdapter {
   async connect(): Promise<void> {
     const tokens = await performGoogleOAuthConnection({
       clientId: this.options.clientId,
+      clientSecret: this.options.clientSecret,
       scope: GOOGLE_SCOPES.gmailReadonly,
       serviceName: 'Gmail'
     })

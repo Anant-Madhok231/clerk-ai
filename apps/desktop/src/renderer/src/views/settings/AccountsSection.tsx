@@ -27,6 +27,20 @@ export function AccountsSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.syncStatus })
   })
 
+  const gmailCheckNow = useMutation({
+    mutationFn: () => window.clerk.gmailCheckNow(),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.situations })
+      showToast(
+        result.checked
+          ? `Checked inbox — ${result.processedCount} item${result.processedCount === 1 ? '' : 's'} processed.`
+          : 'Gmail is not connected.',
+        'success'
+      )
+    },
+    onError: (error: Error) => showToast(error.message, 'error')
+  })
+
   const calendarConnect = useMutation({
     mutationFn: () => window.clerk.calendarConnect(),
     onSuccess: () => {
@@ -58,9 +72,19 @@ export function AccountsSection() {
             </p>
           </div>
           {syncStatus?.gmailConnected ? (
-            <Button variant="ghost" size="sm" onClick={() => gmailDisconnect.mutate()}>
-              Disconnect
-            </Button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => gmailCheckNow.mutate()}
+                disabled={gmailCheckNow.isPending}
+              >
+                {gmailCheckNow.isPending ? <Spinner size={14} /> : 'Check Inbox Now'}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => gmailDisconnect.mutate()}>
+                Disconnect
+              </Button>
+            </div>
           ) : (
             <Button
               variant="secondary"

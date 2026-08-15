@@ -19,6 +19,7 @@ const clerkApi: ClerkApi = {
 
   calendarConnect: () => ipcRenderer.invoke(IPC_CHANNELS.calendarConnect),
   calendarDisconnect: () => ipcRenderer.invoke(IPC_CHANNELS.calendarDisconnect),
+  calendarListUpcoming: () => ipcRenderer.invoke(IPC_CHANNELS.calendarListUpcoming),
 
   getSyncStatus: () => ipcRenderer.invoke(IPC_CHANNELS.getSyncStatus),
 

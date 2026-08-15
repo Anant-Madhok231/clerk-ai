@@ -70,6 +70,7 @@ describe('exchangeCodeForTokens', () => {
 
     const result = await exchangeCodeForTokens({
       clientId: 'client-123',
+      clientSecret: 'secret-456',
       redirectUri: 'http://127.0.0.1:5000/callback',
       code: 'auth-code',
       codeVerifier: 'verifier',
@@ -94,6 +95,7 @@ describe('exchangeCodeForTokens', () => {
     await expect(
       exchangeCodeForTokens({
         clientId: 'client-123',
+        clientSecret: 'secret-456',
         redirectUri: 'http://127.0.0.1:5000/callback',
         code: 'bad-code',
         codeVerifier: 'verifier',

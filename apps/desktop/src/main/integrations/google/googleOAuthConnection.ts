@@ -11,6 +11,7 @@ export interface StoredGoogleTokens {
 
 export interface GoogleOAuthConnectionOptions {
   clientId: string
+  clientSecret: string
   scope: string
   /** Used only in the error message when clientId is missing, e.g. "Gmail" or "Google Calendar". */
   serviceName: string
@@ -20,9 +21,9 @@ export interface GoogleOAuthConnectionOptions {
 export async function performGoogleOAuthConnection(
   options: GoogleOAuthConnectionOptions
 ): Promise<StoredGoogleTokens> {
-  if (!options.clientId) {
+  if (!options.clientId || !options.clientSecret) {
     throw new Error(
-      `Google OAuth client id is not configured — set GOOGLE_OAUTH_CLIENT_ID in apps/desktop/.env.local to connect ${options.serviceName}.`
+      `Google OAuth credentials are not configured — set GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET in apps/desktop/.env.local to connect ${options.serviceName}.`
     )
   }
 
@@ -43,6 +44,7 @@ export async function performGoogleOAuthConnection(
     const { code } = await loopback.waitForCode(state)
     const tokens = await exchangeCodeForTokens({
       clientId: options.clientId,
+      clientSecret: options.clientSecret,
       redirectUri: loopback.redirectUri,
       code,
       codeVerifier
