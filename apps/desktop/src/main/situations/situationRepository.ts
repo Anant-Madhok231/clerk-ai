@@ -8,22 +8,25 @@ import type {
 import type { Db } from '../db/client'
 import { situation, situationEvent, situationSource, sourceItem } from '../db/schema'
 
+function toListItem(row: typeof situation.$inferSelect): SituationListItem {
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    status: row.status as SituationListItem['status'],
+    priority: row.priority as SituationListItem['priority'],
+    amount: row.amount,
+    currency: row.currency,
+    waitingOn: row.waitingOn,
+    deadline: row.deadline,
+    confidence: row.confidence,
+    calendarEventId: row.calendarEventId,
+    updatedAt: row.updatedAt
+  }
+}
+
 export function listSituations(db: Db): SituationListItem[] {
-  return db
-    .select({
-      id: situation.id,
-      title: situation.title,
-      status: situation.status,
-      priority: situation.priority,
-      amount: situation.amount,
-      currency: situation.currency,
-      waitingOn: situation.waitingOn,
-      deadline: situation.deadline,
-      updatedAt: situation.updatedAt
-    })
-    .from(situation)
-    .orderBy(desc(situation.updatedAt))
-    .all()
+  return db.select().from(situation).orderBy(desc(situation.updatedAt)).all().map(toListItem)
 }
 
 export function getSituationDetail(db: Db, situationId: string): SituationDetail | null {
@@ -36,7 +39,9 @@ export function getSituationDetail(db: Db, situationId: string): SituationDetail
       subject: sourceItem.subject,
       sender: sourceItem.sender,
       receivedAt: sourceItem.receivedAt,
-      role: situationSource.role
+      role: situationSource.role,
+      sourceType: sourceItem.sourceType,
+      fileName: sourceItem.fileName
     })
     .from(situationSource)
     .innerJoin(sourceItem, eq(situationSource.sourceItemId, sourceItem.id))
@@ -58,16 +63,10 @@ export function getSituationDetail(db: Db, situationId: string): SituationDetail
     .all()
 
   return {
-    id: row.id,
-    title: row.title,
-    summary: row.summary,
-    status: row.status,
-    priority: row.priority,
-    amount: row.amount,
-    currency: row.currency,
-    waitingOn: row.waitingOn,
-    deadline: row.deadline,
+    ...toListItem(row),
+    category: row.category,
     nextAction: row.nextAction,
+    deadlineConfidence: row.deadlineConfidence,
     sources,
     events
   }

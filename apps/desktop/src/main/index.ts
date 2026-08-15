@@ -2,8 +2,13 @@ import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
 import { initDatabase } from './db'
 import { registerIpcHandlers } from './ipc/handlers'
-import { createAIProvider } from './ai/createAIProvider'
+import { createAIProvider, type AIProviderConfig } from './ai/createAIProvider'
+import { loadOpenAIApiKey } from './ai/apiKeyStore'
+import { getAppSettings } from './settings/appSettings'
 import { GmailAdapter } from './integrations/gmail'
+import { CalendarAdapter } from './integrations/calendar'
+import { registerMainWindow } from './events/broadcast'
+import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
   try {
@@ -13,11 +18,29 @@ function loadLocalEnv(): void {
   }
 }
 
-function createWindow(): void {
+function resolveAIProvider(db: Db) {
+  const settings = getAppSettings(db)
+  const config: AIProviderConfig =
+    settings.aiProviderKind === 'openai'
+      ? (() => {
+          const apiKey = loadOpenAIApiKey(db)
+          // Fall back to Demo Mode rather than constructing a provider that
+          // will fail on first use — Settings surfaces "not configured".
+          return apiKey ? { kind: 'openai' as const, apiKey } : { kind: 'demo' as const }
+        })()
+      : { kind: 'demo' }
+  return createAIProvider(config)
+}
+
+function createWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 1000,
-    height: 700,
+    width: 1180,
+    height: 760,
+    minWidth: 880,
+    minHeight: 600,
     show: false,
+    backgroundColor: '#f6f5f2',
+    title: 'Clerk',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
@@ -46,21 +69,26 @@ function createWindow(): void {
   } else {
     window.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return window
 }
 
 app.whenReady().then(() => {
   loadLocalEnv()
   const db = initDatabase()
-  // AI provider selection (demo vs. a user-supplied OpenAI key) becomes a
-  // Settings-driven choice once that UI exists; Demo Mode is the only
-  // provider wired up so far.
-  const aiProvider = createAIProvider({ kind: 'demo' })
-  const gmailAdapter = new GmailAdapter(db, { clientId: process.env['GMAIL_OAUTH_CLIENT_ID'] ?? '' })
-  registerIpcHandlers({ db, aiProvider, gmailAdapter })
-  createWindow()
+  const aiProvider = resolveAIProvider(db)
+  const googleClientId = process.env['GOOGLE_OAUTH_CLIENT_ID'] ?? ''
+  const gmailAdapter = new GmailAdapter(db, { clientId: googleClientId })
+  const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId })
+  registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdapter })
+
+  const window = createWindow()
+  registerMainWindow(window)
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) {
+      registerMainWindow(createWindow())
+    }
   })
 })
 
