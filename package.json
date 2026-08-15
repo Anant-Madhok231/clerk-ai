@@ -12,16 +12,21 @@
     "dev": "npm run dev -w apps/desktop",
     "build": "npm run build -w apps/desktop",
     "test": "npm run test -w apps/desktop",
-    "lint": "npm run lint -w apps/desktop",
+    "lint": "eslint .",
     "typecheck": "npm run typecheck -w apps/desktop",
     "generate:icons": "node scripts/generate-icons.mjs",
     "dev:site": "npm run dev -w apps/site",
     "build:site": "npm run build -w apps/site"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.11.0",
     "png-to-ico": "^3.0.2",
     "sharp": "^0.35.3",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.67.0"
   },
   "engines": {
     "node": ">=20"

@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Calendar, CheckCircle2, FileText, Image as ImageIcon, Mail, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  CheckCircle2,
+  FileText,
+  Image as ImageIcon,
+  Mail,
+  Sparkles,
+  type LucideIcon
+} from 'lucide-react'
 import type { SituationSourceSummary } from '@shared/ipc-channels'
 import { useNavStore } from '../lib/nav'
 import { queryKeys } from '../lib/queryClient'
@@ -14,15 +23,16 @@ import { ConfidenceBadge } from '../components/situations/ConfidenceBadge'
 import { Timeline } from '../components/situations/Timeline'
 import styles from './SituationDetail.module.css'
 
-function sourceIcon(sourceType: string) {
-  if (sourceType === 'gmail') return Mail
-  if (sourceType === 'png' || sourceType === 'jpg' || sourceType === 'jpeg') return ImageIcon
-  if (sourceType === 'demo') return Sparkles
-  return FileText
+const SOURCE_TYPE_ICONS: Record<string, LucideIcon> = {
+  gmail: Mail,
+  png: ImageIcon,
+  jpg: ImageIcon,
+  jpeg: ImageIcon,
+  demo: Sparkles
 }
 
 function SourceRow({ source }: { source: SituationSourceSummary }) {
-  const Icon = sourceIcon(source.sourceType)
+  const Icon = SOURCE_TYPE_ICONS[source.sourceType] ?? FileText
   return (
     <div className={`${styles.sourceItem} clerk-fade-in`}>
       <div className={styles.sourceIcon}>
