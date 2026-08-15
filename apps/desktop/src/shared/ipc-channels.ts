@@ -5,15 +5,60 @@
  * live in ipc-contract.ts, imported by the main process only.
  */
 export const IPC_CHANNELS = {
-  getNote: 'clerk:getNote',
-  setNote: 'clerk:setNote'
+  loadDemoData: 'demo:load',
+  listSituations: 'situation:list',
+  getSituationDetail: 'situation:getDetail'
 } as const
 
-export interface Note {
-  text: string
+export interface SituationListItem {
+  id: string
+  title: string
+  status: string
+  priority: string
+  amount: number | null
+  currency: string | null
+  waitingOn: string | null
+  deadline: string | null
+  updatedAt: string
+}
+
+export interface SituationSourceSummary {
+  id: string
+  subject: string | null
+  sender: string | null
+  receivedAt: string
+  role: string | null
+}
+
+export interface SituationEventSummary {
+  id: string
+  eventType: string
+  fromStatus: string | null
+  toStatus: string | null
+  occurredAt: string
+}
+
+export interface SituationDetail {
+  id: string
+  title: string
+  summary: string
+  status: string
+  priority: string
+  amount: number | null
+  currency: string | null
+  waitingOn: string | null
+  deadline: string | null
+  nextAction: string | null
+  sources: SituationSourceSummary[]
+  events: SituationEventSummary[]
+}
+
+export interface LoadDemoDataResult {
+  processedCount: number
 }
 
 export interface ClerkApi {
-  getNote(): Promise<Note>
-  setNote(text: string): Promise<Note>
+  loadDemoData(): Promise<LoadDemoDataResult>
+  listSituations(): Promise<SituationListItem[]>
+  getSituationDetail(situationId: string): Promise<SituationDetail | null>
 }

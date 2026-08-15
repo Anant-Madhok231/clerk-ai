@@ -1,45 +1,23 @@
 import { randomUUID } from 'node:crypto'
-import { existsSync, mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import type Database from 'better-sqlite3'
+import { existsSync } from 'node:fs'
 import { eq } from 'drizzle-orm'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { openConnection } from '../connection'
-import { createDrizzleClient, type Db } from '../client'
+import { createDrizzleClient } from '../client'
 import { runMigrations } from '../migrate'
 import { situation, situationEvent, situationSource, sourceItem } from '../schema'
+import { createScratchDb, type ScratchDb } from '../testSupport'
 
-const MIGRATIONS_FOLDER = join(__dirname, '../../../../drizzle/migrations')
-
-let scratchDir: string
-let dbPath: string
-let openConnections: Database.Database[]
-
-beforeEach(() => {
-  scratchDir = mkdtempSync(join(tmpdir(), 'clerk-db-test-'))
-  dbPath = join(scratchDir, 'clerk.sqlite3')
-  openConnections = []
-})
+let current: ScratchDb
 
 afterEach(() => {
-  for (const connection of openConnections) {
-    if (connection.open) connection.close()
-  }
-  rmSync(scratchDir, { recursive: true, force: true })
+  current?.cleanup()
 })
-
-function openMigratedDb(): { sqlite: Database.Database; db: Db } {
-  const sqlite = openConnection(dbPath)
-  openConnections.push(sqlite)
-  const db = createDrizzleClient(sqlite)
-  runMigrations(db, MIGRATIONS_FOLDER)
-  return { sqlite, db }
-}
 
 describe('schema persistence', () => {
   it('links a source item to a situation with an event through real inserts', () => {
-    const { db } = openMigratedDb()
+    current = createScratchDb()
+    const { db } = current
     const now = new Date().toISOString()
 
     const sourceItemId = randomUUID()
@@ -112,7 +90,8 @@ describe('schema persistence', () => {
   })
 
   it('enforces the provider/providerId uniqueness that prevents duplicate ingestion', () => {
-    const { db } = openMigratedDb()
+    current = createScratchDb()
+    const { db } = current
     const now = new Date().toISOString()
     const values = {
       sourceType: 'demo',
@@ -128,7 +107,8 @@ describe('schema persistence', () => {
   })
 
   it('persists data across closing and reopening the connection at the same path', () => {
-    const { sqlite, db: firstDb } = openMigratedDb()
+    current = createScratchDb()
+    const { sqlite, db: firstDb } = current
     const now = new Date().toISOString()
     const id = randomUUID()
 
@@ -149,15 +129,16 @@ describe('schema persistence', () => {
     // Simulate an app restart: close this connection, open a fresh one at
     // the same file path, and confirm the data (and applied-migration
     // bookkeeping) survived.
+    const dbPath = sqlite.name
     sqlite.close()
     expect(existsSync(dbPath)).toBe(true)
 
     const reopenedSqlite = openConnection(dbPath)
-    openConnections.push(reopenedSqlite)
     const reopenedDb = createDrizzleClient(reopenedSqlite)
-    runMigrations(reopenedDb, MIGRATIONS_FOLDER) // must be a no-op, not a re-apply
+    runMigrations(reopenedDb, `${__dirname}/../../../../drizzle/migrations`) // must be a no-op, not a re-apply
 
     const reread = reopenedDb.select().from(situation).where(eq(situation.id, id)).get()
     expect(reread?.title).toBe('Persisted Situation')
+    reopenedSqlite.close()
   })
 })

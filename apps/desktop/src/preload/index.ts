@@ -1,11 +1,19 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, type ClerkApi, type Note } from '@shared/ipc-channels'
+import {
+  IPC_CHANNELS,
+  type ClerkApi,
+  type LoadDemoDataResult,
+  type SituationDetail,
+  type SituationListItem
+} from '@shared/ipc-channels'
 
 // Narrow, typed surface only — no raw ipcRenderer, fs, or process is ever
 // exposed to the renderer.
 const clerkApi: ClerkApi = {
-  getNote: (): Promise<Note> => ipcRenderer.invoke(IPC_CHANNELS.getNote),
-  setNote: (text: string): Promise<Note> => ipcRenderer.invoke(IPC_CHANNELS.setNote, { text })
+  loadDemoData: (): Promise<LoadDemoDataResult> => ipcRenderer.invoke(IPC_CHANNELS.loadDemoData),
+  listSituations: (): Promise<SituationListItem[]> => ipcRenderer.invoke(IPC_CHANNELS.listSituations),
+  getSituationDetail: (situationId: string): Promise<SituationDetail | null> =>
+    ipcRenderer.invoke(IPC_CHANNELS.getSituationDetail, { situationId })
 }
 
 contextBridge.exposeInMainWorld('clerk', clerkApi)

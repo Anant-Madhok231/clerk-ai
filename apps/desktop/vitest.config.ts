@@ -9,6 +9,11 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    exclude: ['**/node_modules/**', '**/db/**/*.test.ts']
+    exclude: [
+      '**/node_modules/**',
+      'src/main/db/**/*.test.ts',
+      'src/main/pipeline/**/*.test.ts',
+      'src/main/demo/**/*.test.ts'
+    ]
   }
 })

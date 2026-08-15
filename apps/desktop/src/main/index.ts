@@ -1,7 +1,8 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, shell } from 'electron'
-import { initDatabase, getRawConnection } from './db'
+import { initDatabase } from './db'
 import { registerIpcHandlers } from './ipc/handlers'
+import { createAIProvider } from './ai/createAIProvider'
 
 function createWindow(): void {
   const window = new BrowserWindow({
@@ -39,8 +40,12 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  initDatabase()
-  registerIpcHandlers(getRawConnection())
+  const db = initDatabase()
+  // AI provider selection (demo vs. a user-supplied OpenAI key) becomes a
+  // Settings-driven choice once that UI exists; Demo Mode is the only
+  // provider wired up so far.
+  const aiProvider = createAIProvider({ kind: 'demo' })
+  registerIpcHandlers({ db, aiProvider })
   createWindow()
 
   app.on('activate', () => {

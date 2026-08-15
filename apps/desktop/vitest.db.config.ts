@@ -13,6 +13,10 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['src/main/db/**/*.test.ts']
+    include: [
+      'src/main/db/**/*.test.ts',
+      'src/main/pipeline/**/*.test.ts',
+      'src/main/demo/**/*.test.ts'
+    ]
   }
 })
