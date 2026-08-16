@@ -75,6 +75,7 @@ export class GmailAdapter {
           sender: detail.from,
           subject: detail.subject,
           snippet: detail.snippet,
+          body: detail.body,
           receivedAt: new Date(Number(detail.internalDate)).toISOString()
         })
       )

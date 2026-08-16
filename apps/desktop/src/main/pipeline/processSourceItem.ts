@@ -14,6 +14,8 @@ export interface IncomingSourceItem {
   sender?: string | null
   subject?: string | null
   snippet?: string | null
+  /** Full extracted message text, when available. Not persisted — used only for this classification call. */
+  body?: string | null
   receivedAt: string
   fileName?: string | null
   contentHash?: string | null
@@ -74,6 +76,7 @@ export async function processSourceItem(
       sender: input.sender ?? null,
       subject: input.subject ?? null,
       snippet: input.snippet ?? null,
+      body: input.body ?? null,
       receivedAt: input.receivedAt
     },
     candidates

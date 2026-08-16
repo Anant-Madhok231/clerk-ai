@@ -39,8 +39,16 @@ export interface GmailMessageDetail {
   subject: string | null
   from: string | null
   snippet: string
+  /** Full extracted message text (plain-text preferred, HTML converted to text as fallback) — null if the message had no readable body part. */
+  body: string | null
   /** Epoch milliseconds, as a string — the format the Gmail API returns. */
   internalDate: string
+}
+
+interface RawGmailMessagePart {
+  mimeType?: string
+  body?: { data?: string }
+  parts?: RawGmailMessagePart[]
 }
 
 interface RawGmailMessage {
@@ -48,19 +56,66 @@ interface RawGmailMessage {
   threadId: string
   snippet: string
   internalDate: string
-  payload?: { headers?: Array<{ name: string; value: string }> }
+  payload?: { headers?: Array<{ name: string; value: string }> } & RawGmailMessagePart
 }
 
-/** Metadata-only fetch (no full body) — enough to classify without storing the complete message indefinitely. */
+function decodeBase64Url(data: string): string {
+  return Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf-8')
+}
+
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  '#39': "'",
+  apos: "'",
+  nbsp: ' '
+}
+
+function htmlToText(html: string): string {
+  return html
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<(br|\/p|\/div|\/tr|\/li|\/h[1-6])\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&(#39|amp|lt|gt|quot|apos|nbsp);/g, (_, entity: string) => HTML_ENTITIES[entity] ?? ' ')
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCharCode(Number(code)))
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    .trim()
+}
+
+/** Walks Gmail's (possibly nested multipart) payload tree, preferring the first text/plain part found and falling back to text/html converted to plain text. */
+function extractBodyText(part: RawGmailMessagePart | undefined): string | null {
+  if (!part) return null
+
+  let htmlFallback: string | null = null
+
+  function walk(node: RawGmailMessagePart): string | null {
+    if (node.mimeType === 'text/plain' && node.body?.data) {
+      return decodeBase64Url(node.body.data)
+    }
+    if (node.mimeType === 'text/html' && node.body?.data && htmlFallback === null) {
+      htmlFallback = htmlToText(decodeBase64Url(node.body.data))
+    }
+    for (const child of node.parts ?? []) {
+      const found = walk(child)
+      if (found) return found
+    }
+    return null
+  }
+
+  return walk(part) ?? htmlFallback
+}
+
+/** Full-body fetch — used for classification. Content is used transiently and never persisted to the database, only the short Gmail-generated snippet is stored. */
 export async function getMessage(
   accessToken: string,
   messageId: string,
   fetchImpl: typeof fetch = fetch
 ): Promise<GmailMessageDetail> {
   const url = new URL(`${GMAIL_MESSAGES_URL}/${messageId}`)
-  url.searchParams.set('format', 'metadata')
-  url.searchParams.append('metadataHeaders', 'Subject')
-  url.searchParams.append('metadataHeaders', 'From')
+  url.searchParams.set('format', 'full')
 
   const response = await fetchImpl(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` }
@@ -82,6 +137,7 @@ export async function getMessage(
     subject,
     from,
     snippet: payload.snippet,
+    body: extractBodyText(payload.payload),
     internalDate: payload.internalDate
   }
 }

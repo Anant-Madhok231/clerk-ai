@@ -57,8 +57,89 @@ describe('getMessage', () => {
       subject: 'Your refund request has been received',
       from: 'Amazon <no-reply@amazon.com>',
       snippet: 'Your refund request has been received.',
+      body: null,
       internalDate: '1755248400000'
     })
+  })
+
+  it('requests the full message format, not just metadata', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 'm', threadId: 't', snippet: 's', internalDate: '1' })
+    })
+    await getMessage('token-abc', 'msg-1', fetchImpl as unknown as typeof fetch)
+    const call = fetchImpl.mock.calls[0]
+    expect(String(call![0])).toContain('format=full')
+  })
+
+  it('extracts the text/plain body, base64url-decoded', async () => {
+    const bodyText = 'Please submit the form by Friday, August 21 at 5:00 PM.'
+    const encoded = Buffer.from(bodyText, 'utf-8').toString('base64url')
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'msg-3',
+        threadId: 'thread-3',
+        snippet: 'Please submit the form...',
+        internalDate: '1755248400000',
+        payload: {
+          headers: [{ name: 'Subject', value: 'Form due' }],
+          mimeType: 'text/plain',
+          body: { data: encoded }
+        }
+      })
+    })
+
+    const result = await getMessage('token-abc', 'msg-3', fetchImpl as unknown as typeof fetch)
+    expect(result.body).toBe(bodyText)
+  })
+
+  it('falls back to text/html converted to plain text when there is no text/plain part', async () => {
+    const html = '<div>Hi Anant,<br>Your <b>application</b> is incomplete.<br><a href="https://example.com/form">Complete the form</a></div>'
+    const encoded = Buffer.from(html, 'utf-8').toString('base64url')
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'msg-4',
+        threadId: 'thread-4',
+        snippet: 'Hi Anant...',
+        internalDate: '1755248400000',
+        payload: {
+          headers: [],
+          mimeType: 'multipart/alternative',
+          parts: [{ mimeType: 'text/html', body: { data: encoded } }]
+        }
+      })
+    })
+
+    const result = await getMessage('token-abc', 'msg-4', fetchImpl as unknown as typeof fetch)
+    expect(result.body).toContain('Your application is incomplete')
+    expect(result.body).toContain('Complete the form')
+    expect(result.body).not.toContain('<div>')
+  })
+
+  it('prefers a nested text/plain part over a sibling text/html part', async () => {
+    const plainText = 'Plain version: due Friday.'
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        id: 'msg-5',
+        threadId: 'thread-5',
+        snippet: 's',
+        internalDate: '1755248400000',
+        payload: {
+          headers: [],
+          mimeType: 'multipart/alternative',
+          parts: [
+            { mimeType: 'text/plain', body: { data: Buffer.from(plainText).toString('base64url') } },
+            { mimeType: 'text/html', body: { data: Buffer.from('<p>HTML version</p>').toString('base64url') } }
+          ]
+        }
+      })
+    })
+
+    const result = await getMessage('token-abc', 'msg-5', fetchImpl as unknown as typeof fetch)
+    expect(result.body).toBe(plainText)
   })
 
   it('returns null headers when Subject/From are missing', async () => {

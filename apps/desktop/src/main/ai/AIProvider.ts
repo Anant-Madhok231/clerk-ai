@@ -34,6 +34,8 @@ export interface ClassificationSourceItem {
   sender: string | null
   subject: string | null
   snippet: string | null
+  /** Full extracted message text, when available — classification should prefer this over snippet, which is only a short Gmail-generated preview. */
+  body?: string | null
   receivedAt: string
 }
 

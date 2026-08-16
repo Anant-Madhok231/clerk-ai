@@ -27,7 +27,14 @@ const SYSTEM_PROMPT = `You are Clerk, a personal admin agent. Classify one incom
 }
 ACTION: the user must do something. WAITING: the user already acted and is waiting on someone else.
 COMPLETED: this resolves an existing ACTION or WAITING situation — only use matchedSituationId when a candidate is offered and the text clearly resolves it. INFORMATIONAL: no action and nothing to resolve.
+
+Read the entire message body, not just the first sentence — deadlines, forms, and required links are often stated later in the message. Detect both explicit dates (e.g. "August 21", "8/21") and relative ones ("by Friday", "within 48 hours", "no later than tomorrow"), resolving relative dates against the message's Received timestamp. Distinguish a deadline the user must act by from an unrelated date mentioned in passing (e.g. an event date, a past order date). Treat implicit action language ("your application is incomplete", "we haven't heard back from you", "confirm your attendance") as requiring action even without an explicit "please respond" — but do not invent a deadline date that isn't actually stated or clearly implied.
+
 Respond with the JSON object only, no surrounding text.`
+
+// Keeps prompts a bounded size regardless of message length -- covers the
+// vast majority of real emails in full while capping worst-case cost/latency.
+const MAX_BODY_CHARS = 8000
 
 function buildUserPrompt(input: ClassificationInput): string {
   const { sourceItem, candidates } = input
@@ -36,13 +43,21 @@ function buildUserPrompt(input: ClassificationInput): string {
       ? candidates.map((c) => `- id: ${c.id}, title: "${c.title}", status: ${c.status}`).join('\n')
       : '(none — this is the first message seen on this thread)'
 
+  const fullBody = sourceItem.body?.trim()
+  const bodyText = fullBody
+    ? fullBody.length > MAX_BODY_CHARS
+      ? `${fullBody.slice(0, MAX_BODY_CHARS)}\n[...truncated]`
+      : fullBody
+    : (sourceItem.snippet ?? '(none)')
+
   return [
     `Source type: ${sourceItem.sourceType}`,
     `Provider: ${sourceItem.provider}`,
     `Sender: ${sourceItem.sender ?? '(unknown)'}`,
     `Received: ${sourceItem.receivedAt}`,
     `Subject: ${sourceItem.subject ?? '(none)'}`,
-    `Body/snippet: ${sourceItem.snippet ?? '(none)'}`,
+    'Body:',
+    bodyText,
     '',
     'Candidate situations already tracked on this thread:',
     candidateList
