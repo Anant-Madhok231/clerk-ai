@@ -7,6 +7,8 @@ import {
   FileText,
   Image as ImageIcon,
   Mail,
+  MailX,
+  RotateCcw,
   Sparkles,
   type LucideIcon
 } from 'lucide-react'
@@ -77,6 +79,26 @@ export function SituationDetail({ situationId }: { situationId: string }) {
     mutationFn: () => window.clerk.markSituationComplete(situationId),
     onSuccess: () => {
       showToast('Marked complete.', 'success')
+      queryClient.invalidateQueries({ queryKey: queryKeys.situations })
+      queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
+    },
+    onError: (error: Error) => showToast(error.message, 'error')
+  })
+
+  const dismiss = useMutation({
+    mutationFn: () => window.clerk.dismissSituation(situationId),
+    onSuccess: () => {
+      showToast('Moved to Low.', 'success')
+      queryClient.invalidateQueries({ queryKey: queryKeys.situations })
+      queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
+    },
+    onError: (error: Error) => showToast(error.message, 'error')
+  })
+
+  const restore = useMutation({
+    mutationFn: () => window.clerk.restoreSituation(situationId),
+    onSuccess: () => {
+      showToast('Restored.', 'success')
       queryClient.invalidateQueries({ queryKey: queryKeys.situations })
       queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
     },
@@ -158,6 +180,15 @@ export function SituationDetail({ situationId }: { situationId: string }) {
             disabled={markComplete.isPending}
           >
             <CheckCircle2 size={14} /> {markComplete.isPending ? 'Marking…' : 'Mark Complete'}
+          </Button>
+        )}
+        {detail.dismissed ? (
+          <Button variant="secondary" onClick={() => restore.mutate()} disabled={restore.isPending}>
+            <RotateCcw size={14} /> {restore.isPending ? 'Restoring…' : 'Not Spam, Restore'}
+          </Button>
+        ) : (
+          <Button variant="secondary" onClick={() => dismiss.mutate()} disabled={dismiss.isPending}>
+            <MailX size={14} /> {dismiss.isPending ? 'Moving…' : 'Not Needed / Spam'}
           </Button>
         )}
       </div>

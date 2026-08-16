@@ -13,7 +13,7 @@ export function History() {
   })
 
   const { completed, informational } = useMemo(() => {
-    const items = [...(data ?? [])].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+    const items = [...(data ?? [])].filter((i) => !i.dismissed).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     return {
       completed: items.filter((i) => i.status === 'COMPLETED'),
       informational: items.filter((i) => i.status === 'INFORMATIONAL')

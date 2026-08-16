@@ -12,6 +12,8 @@ const clerkApi: ClerkApi = {
     ipcRenderer.invoke(IPC_CHANNELS.addSituationToCalendar, { situationId }),
   markSituationComplete: (situationId) =>
     ipcRenderer.invoke(IPC_CHANNELS.markSituationComplete, { situationId }),
+  dismissSituation: (situationId) => ipcRenderer.invoke(IPC_CHANNELS.dismissSituation, { situationId }),
+  restoreSituation: (situationId) => ipcRenderer.invoke(IPC_CHANNELS.restoreSituation, { situationId }),
 
   gmailConnect: () => ipcRenderer.invoke(IPC_CHANNELS.gmailConnect),
   gmailDisconnect: () => ipcRenderer.invoke(IPC_CHANNELS.gmailDisconnect),

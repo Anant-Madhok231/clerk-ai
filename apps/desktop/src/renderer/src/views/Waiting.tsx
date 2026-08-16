@@ -13,7 +13,10 @@ export function Waiting() {
   })
 
   const waiting = useMemo(
-    () => (data ?? []).filter((i) => i.status === 'WAITING').sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
+    () =>
+      (data ?? [])
+        .filter((i) => i.status === 'WAITING' && !i.dismissed)
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)),
     [data]
   )
 

@@ -13,6 +13,7 @@ import { Actions } from './views/Actions'
 import { Waiting } from './views/Waiting'
 import { Documents } from './views/Documents'
 import { History } from './views/History'
+import { Low } from './views/Low'
 import { Settings } from './views/Settings'
 import { SituationDetail } from './views/SituationDetail'
 
@@ -62,6 +63,7 @@ function Shell() {
         {view === 'waiting' && <Waiting />}
         {view === 'documents' && <Documents />}
         {view === 'history' && <History />}
+        {view === 'low' && <Low />}
         {view === 'settings' && <Settings />}
         {view === 'situationDetail' && selectedSituationId && (
           <SituationDetail situationId={selectedSituationId} />

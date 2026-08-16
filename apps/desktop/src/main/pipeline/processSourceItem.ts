@@ -6,6 +6,7 @@ import { situation, situationEvent, situationSource, sourceItem } from '../db/sc
 import type { AIProvider } from '../ai/AIProvider'
 import { findCandidateSituations } from './matcher'
 import { isTrackedSender } from '../settings/trackedSenders'
+import { matchesDismissalSignal } from '../settings/dismissalSignals'
 
 export interface IncomingSourceItem {
   sourceType: string
@@ -91,7 +92,13 @@ export async function processSourceItem(
   if (matched) {
     return applyUpdate(db, matched.id, sourceItemId, classification, now)
   }
-  return createSituation(db, sourceItemId, classification, now)
+  // only checking for spam-like matches on brand new situations, not updates
+  // to something that's already a real tracked situation
+  const looksLikeDismissedStuff = matchesDismissalSignal(db, {
+    sender: input.sender ?? null,
+    subject: input.subject ?? null
+  })
+  return createSituation(db, sourceItemId, classification, now, looksLikeDismissedStuff)
 }
 
 function applyUpdate(
@@ -148,7 +155,8 @@ function createSituation(
   db: Db,
   sourceItemId: string,
   classification: Awaited<ReturnType<AIProvider['classify']>>,
-  now: string
+  now: string,
+  looksLikeDismissedStuff: boolean
 ): ProcessResult {
   const situationId = randomUUID()
 
@@ -168,6 +176,8 @@ function createSituation(
       waitingOn: classification.waitingOn ?? null,
       confidence: classification.confidence,
       userConfirmed: false,
+      dismissed: looksLikeDismissedStuff,
+      dismissalReason: looksLikeDismissedStuff ? 'auto-similar' : null,
       createdAt: now,
       updatedAt: now,
       resolvedAt: classification.status === 'COMPLETED' ? now : null
@@ -182,7 +192,7 @@ function createSituation(
     .values({
       id: randomUUID(),
       situationId,
-      eventType: 'CREATED',
+      eventType: looksLikeDismissedStuff ? 'AUTO_DISMISSED' : 'CREATED',
       toStatus: classification.status,
       occurredAt: now,
       payload: JSON.stringify({ sourceItemId, evidenceSummary: classification.evidenceSummary ?? null })

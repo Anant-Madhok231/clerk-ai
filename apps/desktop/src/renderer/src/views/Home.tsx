@@ -40,7 +40,7 @@ export function Home() {
   })
 
   const { needsAttention, upcoming, waiting, recentlyCompleted } = useMemo(() => {
-    const items = data ?? []
+    const items = (data ?? []).filter((i) => !i.dismissed)
     const action = items.filter((i) => i.status === 'ACTION')
     return {
       needsAttention: action.filter((i) => i.priority === 'HIGH' || i.priority === 'URGENT'),

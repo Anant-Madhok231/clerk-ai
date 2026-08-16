@@ -8,6 +8,8 @@ export const IPC_CHANNELS = {
   getSituationDetail: 'situation:getDetail',
   addSituationToCalendar: 'situation:addToCalendar',
   markSituationComplete: 'situation:markComplete',
+  dismissSituation: 'situation:dismiss',
+  restoreSituation: 'situation:restore',
 
   gmailConnect: 'gmail:connect',
   gmailDisconnect: 'gmail:disconnect',
@@ -44,6 +46,8 @@ export const IPC_CHANNELS = {
 export type SituationStatusValue = 'ACTION' | 'WAITING' | 'COMPLETED' | 'INFORMATIONAL'
 export type SituationPriorityValue = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
 
+export type DismissalReasonValue = 'user' | 'auto-similar' | null
+
 export interface SituationListItem {
   id: string
   title: string
@@ -56,6 +60,8 @@ export interface SituationListItem {
   deadline: string | null
   confidence: number
   calendarEventId: string | null
+  dismissed: boolean
+  dismissalReason: DismissalReasonValue
   updatedAt: string
 }
 
@@ -181,6 +187,8 @@ export interface ClerkApi {
   getSituationDetail(situationId: string): Promise<SituationDetail | null>
   addSituationToCalendar(situationId: string): Promise<AddToCalendarResult>
   markSituationComplete(situationId: string): Promise<void>
+  dismissSituation(situationId: string): Promise<void>
+  restoreSituation(situationId: string): Promise<void>
 
   gmailConnect(): Promise<GmailStatus>
   gmailDisconnect(): Promise<GmailStatus>

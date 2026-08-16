@@ -17,7 +17,7 @@ export function Actions() {
   const actions = useMemo(
     () =>
       (data ?? [])
-        .filter((i) => i.status === 'ACTION')
+        .filter((i) => i.status === 'ACTION' && !i.dismissed)
         .sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]),
     [data]
   )

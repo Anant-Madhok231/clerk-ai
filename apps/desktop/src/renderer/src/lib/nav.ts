@@ -7,6 +7,7 @@ export type ViewName =
   | 'waiting'
   | 'documents'
   | 'history'
+  | 'low'
   | 'settings'
   | 'situationDetail'
 

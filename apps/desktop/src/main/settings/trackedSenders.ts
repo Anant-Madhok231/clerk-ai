@@ -53,7 +53,7 @@ export function removeTrackedSender(db: Db, id: string): TrackedSender[] {
 }
 
 /** pulls the plain email out of a "Name <addr@host>" or just "addr@host" string */
-function extractEmailAddress(sender: string): string | null {
+export function extractEmailAddress(sender: string): string | null {
   const match = /<([^>]+)>/.exec(sender) ?? [null, sender]
   const candidate = match[1]?.trim().toLowerCase()
   return candidate && candidate.includes('@') ? candidate : null
