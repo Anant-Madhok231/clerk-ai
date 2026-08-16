@@ -2,6 +2,30 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.0.2] — 2026-08-16
+
+Release-provenance correction, plus a batch of real fixes that had accumulated on `main` after `v1.0.1` was tagged and published. `v1.0.1`'s published assets were rebuilt from later commits without moving the tag, so the tag no longer matched what it shipped — `v1.0.2` is a clean tag/build/asset match at the current source. `v1.0.1` itself is left published and untouched; nothing about it was rewritten.
+
+### Fixed (since v1.0.1's tagged commit)
+
+- Google OAuth token exchange now sends `client_secret` — required by Google for "Desktop app" client types even with PKCE, discovered via a live 401.
+- Google access tokens are refreshed automatically before they expire (Gmail and Calendar), instead of failing after ~1 hour.
+- Gmail sync fetches full message bodies (`format=full`) instead of only the ~150-character snippet, both for classification and for on-screen summaries.
+- Gmail queries now exclude `-in:sent -in:drafts`, so a user's own reply on a thread is never ingested as a new incoming item.
+- New Gmail connections (and pre-existing installs on first launch after upgrading) run a paginated 10-day backfill, so mail already in the inbox before Clerk was connected gets analyzed instead of silently skipped.
+- `DemoAIProvider` recognizes sentence-initial imperative language ("Open your dashboard...", "Confirm your spot...") and common personal-correspondence signal phrases, not just its original fixed phrase list — fixes real missed items found via live testing against a connected account.
+- Deadlines without an explicit year are now resolved against the message's received date instead of being dropped.
+- Zero-width/invisible Unicode characters are stripped from both extracted body text and Gmail's own snippet field (two separate code paths were affected).
+
+### Added (since v1.0.1's tagged commit)
+
+- Tracked Senders: track an exact email address or a whole domain; matched mail gets a priority boost. Domain matching is real suffix matching, not substring (`fakecompany.com` does not match `company.com`).
+- Deadline countdown display ("3 days left" / "Due tomorrow" / "Overdue by N days") on situation cards and the detail view.
+- "Mark Complete" quick action directly on situation cards.
+- Upcoming Calendar events shown on Home.
+- "Check Inbox Now" button in Settings (the IPC path already existed, no UI entry point previously).
+- Privacy policy page, required for Google OAuth verification.
+
 ## [1.0.1] — 2026-08-15
 
 Clean rebuild of Clerk. Versioned 1.0.1 rather than 1.0.0 because the existing `Anant-Madhok231/clerk-ai` repository already had a `v1.0.0` tag from the prior implementation, preserved untouched at the `legacy-before-clean-rebuild` tag and `legacy-cowork-build` branch.

@@ -1,7 +1,7 @@
 {
   "name": "@clerk/site",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Clerk marketing site and interactive demo — clerk-ai.github.io/clerk-ai.",
   "scripts": {
     "dev": "vite",
