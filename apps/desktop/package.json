@@ -1,7 +1,7 @@
 {
   "name": "@clerk/desktop",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Clerk — your personal AI admin agent.",
   "author": "Anant Madhok",
   "license": "MIT",

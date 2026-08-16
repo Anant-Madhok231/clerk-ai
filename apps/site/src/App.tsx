@@ -10,7 +10,7 @@ const RELEASES_URL = 'https://github.com/Anant-Madhok231/clerk-ai/releases'
 
 // bump this whenever the desktop app version bumps too, only used in the
 // beta access request email
-const CLERK_VERSION = '1.0.2'
+const CLERK_VERSION = '1.0.3'
 
 // filenames stay the same across versions so these always point at the
 // newest release without editing this file

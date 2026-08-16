@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format loosely follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.0.3] — 2026-08-16
+
+New situation-management features on top of the existing pipeline — no changes to classification, matching, or reconciliation logic.
+
+### Added
+
+- **Not needed / Spam**: dismiss any situation directly from its card or the detail view. Two separate actions — plain "Dismiss" only hides that one item, "Dismiss + Hide Similar" also remembers the sender/subject wording so future mail that looks similar gets auto-filed the same way. Nothing is ever deleted.
+- **Low section**: a new nav item holding everything dismissed, split into two sub-sections — Low-Rate (dismissed by hand) and Low-Like (auto-matched to something dismissed with "hide similar" on). Fully recoverable with a restore action.
+- **Important**: a star toggle on every card and the detail view. Marking something important is a pure flag — it doesn't move or change the item at all, so a WAITING situation marked important still shows in Waiting exactly as before, and now also shows in a new Important nav section.
+- Website's beta-access download form (added earlier) — its version string now tracks the desktop app's own version.
+
 ## [1.0.2] — 2026-08-16
 
 Release-provenance correction, plus a batch of real fixes that had accumulated on `main` after `v1.0.1` was tagged and published. `v1.0.1`'s published assets were rebuilt from later commits without moving the tag, so the tag no longer matched what it shipped — `v1.0.2` is a clean tag/build/asset match at the current source. `v1.0.1` itself is left published and untouched; nothing about it was rewritten.
