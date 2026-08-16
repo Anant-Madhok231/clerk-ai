@@ -2,7 +2,7 @@ import type { Db } from '../../db/client'
 import type { AIProvider } from '../../ai/AIProvider'
 import { processSourceItem, type ProcessResult } from '../../pipeline/processSourceItem'
 import { GOOGLE_SCOPES } from '../google/oauthClient'
-import { performGoogleOAuthConnection } from '../google/googleOAuthConnection'
+import { ensureFreshAccessToken, performGoogleOAuthConnection } from '../google/googleOAuthConnection'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 import { getMessage, listRecentMessageIds, type GmailMessageListItem } from './gmailClient'
 
@@ -40,10 +40,16 @@ export class GmailAdapter {
     clearTokens(this.db)
   }
 
-  async listRecentMessageIds(limit = 5): Promise<GmailMessageListItem[]> {
+  /** Loads stored tokens, transparently refreshing an expired access token before returning it. */
+  private async getValidAccessToken(): Promise<string> {
     const tokens = loadTokens(this.db)
     if (!tokens) throw new Error('Gmail is not connected.')
-    return listRecentMessageIds(tokens.accessToken, { maxResults: limit })
+    return ensureFreshAccessToken(tokens, this.options, (updated) => saveTokens(this.db, updated))
+  }
+
+  async listRecentMessageIds(limit = 5): Promise<GmailMessageListItem[]> {
+    const accessToken = await this.getValidAccessToken()
+    return listRecentMessageIds(accessToken, { maxResults: limit })
   }
 
   /**
@@ -54,13 +60,12 @@ export class GmailAdapter {
    * repeated calls cheap rather than tracking a sync cursor.
    */
   async sync(aiProvider: AIProvider, maxResults = 20): Promise<ProcessResult[]> {
-    const tokens = loadTokens(this.db)
-    if (!tokens) throw new Error('Gmail is not connected.')
+    const accessToken = await this.getValidAccessToken()
 
-    const messages = await listRecentMessageIds(tokens.accessToken, { maxResults })
+    const messages = await listRecentMessageIds(accessToken, { maxResults })
     const results: ProcessResult[] = []
     for (const { id } of messages) {
-      const detail = await getMessage(tokens.accessToken, id)
+      const detail = await getMessage(accessToken, id)
       results.push(
         await processSourceItem(this.db, aiProvider, {
           sourceType: 'gmail',

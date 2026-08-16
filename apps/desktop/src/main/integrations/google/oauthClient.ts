@@ -107,3 +107,49 @@ export async function exchangeCodeForTokens(options: ExchangeCodeOptions): Promi
     tokenType: payload.token_type
   }
 }
+
+export interface RefreshTokenOptions {
+  clientId: string
+  clientSecret: string
+  refreshToken: string
+  fetchImpl?: typeof fetch
+}
+
+/** Access tokens expire in ~1hr; this exchanges the long-lived refresh token for a new one, used whenever a stored token has expired. */
+export async function refreshAccessToken(options: RefreshTokenOptions): Promise<TokenResponse> {
+  const fetchImpl = options.fetchImpl ?? fetch
+  const body = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: options.refreshToken,
+    client_id: options.clientId,
+    client_secret: options.clientSecret
+  })
+
+  const response = await fetchImpl(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`Google token refresh failed (${response.status}): ${text}`)
+  }
+
+  const payload = (await response.json()) as {
+    access_token: string
+    refresh_token?: string
+    expires_in: number
+    scope: string
+    token_type: string
+  }
+
+  return {
+    accessToken: payload.access_token,
+    // Google often omits refresh_token on refresh responses — the original stays valid indefinitely until revoked.
+    refreshToken: payload.refresh_token,
+    expiresIn: payload.expires_in,
+    scope: payload.scope,
+    tokenType: payload.token_type
+  }
+}

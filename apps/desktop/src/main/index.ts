@@ -12,6 +12,7 @@ import { broadcastNavigateToSettings, registerChangeListener, registerMainWindow
 import { createTray, refreshTray, type TrayDependencies } from './tray/createTray'
 import { checkGmailNow } from './sync/checkNow'
 import { startBackgroundScheduler } from './sync/backgroundScheduler'
+import { deleteDemoSituationData } from './situations/deleteDemoData'
 import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
@@ -117,6 +118,12 @@ app.whenReady().then(() => {
   const gmailAdapter = new GmailAdapter(db, { clientId: googleClientId, clientSecret: googleClientSecret })
   const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId, clientSecret: googleClientSecret })
   registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdapter })
+
+  // Self-heals installs that connected a real account before demo-fixture
+  // auto-cleanup existed on the connect handlers themselves.
+  if (gmailAdapter.isConnected() || calendarAdapter.isConnected()) {
+    deleteDemoSituationData(db)
+  }
 
   let window = createWindow(db)
   registerMainWindow(window)

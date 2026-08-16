@@ -1,5 +1,11 @@
 import { shell } from 'electron'
-import { buildAuthorizationUrl, exchangeCodeForTokens, generatePkcePair, generateState } from './oauthClient'
+import {
+  buildAuthorizationUrl,
+  exchangeCodeForTokens,
+  generatePkcePair,
+  generateState,
+  refreshAccessToken
+} from './oauthClient'
 import { startLoopbackServer } from './loopbackServer'
 
 export interface StoredGoogleTokens {
@@ -59,4 +65,38 @@ export async function performGoogleOAuthConnection(
   } finally {
     await loopback.close()
   }
+}
+
+/**
+ * Returns a definitely-valid access token, transparently refreshing (and
+ * persisting the refreshed tokens via saveTokens) if the stored one has
+ * expired or is about to within the next minute. Every Gmail/Calendar API
+ * call goes through this rather than reading tokens.accessToken directly.
+ */
+export async function ensureFreshAccessToken(
+  tokens: StoredGoogleTokens,
+  credentials: { clientId: string; clientSecret: string },
+  saveTokens: (tokens: StoredGoogleTokens) => void
+): Promise<string> {
+  const expiringSoon = tokens.expiresAt <= Date.now() + 60_000
+  if (!expiringSoon) return tokens.accessToken
+
+  if (!tokens.refreshToken) {
+    throw new Error('Google access token expired and no refresh token is available — please reconnect.')
+  }
+
+  const refreshed = await refreshAccessToken({
+    clientId: credentials.clientId,
+    clientSecret: credentials.clientSecret,
+    refreshToken: tokens.refreshToken
+  })
+
+  const updated: StoredGoogleTokens = {
+    accessToken: refreshed.accessToken,
+    refreshToken: refreshed.refreshToken ?? tokens.refreshToken,
+    expiresAt: Date.now() + refreshed.expiresIn * 1000,
+    scope: refreshed.scope
+  }
+  saveTokens(updated)
+  return updated.accessToken
 }

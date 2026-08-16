@@ -30,6 +30,7 @@ import { getSituationDetail, listSituations } from '../situations/situationRepos
 import { addSituationToCalendar } from '../situations/addToCalendar'
 import { markSituationComplete } from '../situations/markComplete'
 import { deleteAllSituationData } from '../situations/deleteAllData'
+import { deleteDemoSituationData } from '../situations/deleteDemoData'
 import { importDocument } from '../documents/importDocument'
 import { getAppSettings, updateAppSettings } from '../settings/appSettings'
 import { clearOpenAIApiKey, loadOpenAIApiKey, saveOpenAIApiKey } from '../ai/apiKeyStore'
@@ -81,6 +82,8 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
   // --- Gmail ------------------------------------------------------------
   ipcMain.handle(IPC_CHANNELS.gmailConnect, async (): Promise<GmailStatus> => {
     await gmailAdapter.connect()
+    deleteDemoSituationData(db)
+    broadcastSituationsChanged()
     broadcastSyncStatusChanged()
     return { connected: gmailAdapter.isConnected() }
   })
@@ -99,6 +102,8 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
   // --- Calendar -----------------------------------------------------
   ipcMain.handle(IPC_CHANNELS.calendarConnect, async (): Promise<CalendarStatus> => {
     await calendarAdapter.connect()
+    deleteDemoSituationData(db)
+    broadcastSituationsChanged()
     broadcastSyncStatusChanged()
     return { connected: calendarAdapter.isConnected() }
   })

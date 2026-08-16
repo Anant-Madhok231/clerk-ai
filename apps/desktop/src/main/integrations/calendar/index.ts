@@ -1,6 +1,6 @@
 import type { Db } from '../../db/client'
 import { GOOGLE_SCOPES } from '../google/oauthClient'
-import { performGoogleOAuthConnection } from '../google/googleOAuthConnection'
+import { ensureFreshAccessToken, performGoogleOAuthConnection } from '../google/googleOAuthConnection'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
 import { createEvent, listUpcomingEvents, type CreateEventInput, type CreatedEvent, type UpcomingEvent } from './calendarClient'
 
@@ -34,15 +34,20 @@ export class CalendarAdapter {
     clearTokens(this.db)
   }
 
-  async createEvent(input: CreateEventInput): Promise<CreatedEvent> {
+  /** Loads stored tokens, transparently refreshing an expired access token before returning it. */
+  private async getValidAccessToken(): Promise<string> {
     const tokens = loadTokens(this.db)
     if (!tokens) throw new Error('Google Calendar is not connected.')
-    return createEvent(tokens.accessToken, input)
+    return ensureFreshAccessToken(tokens, this.options, (updated) => saveTokens(this.db, updated))
+  }
+
+  async createEvent(input: CreateEventInput): Promise<CreatedEvent> {
+    const accessToken = await this.getValidAccessToken()
+    return createEvent(accessToken, input)
   }
 
   async listUpcomingEvents(maxResults = 10): Promise<UpcomingEvent[]> {
-    const tokens = loadTokens(this.db)
-    if (!tokens) throw new Error('Google Calendar is not connected.')
-    return listUpcomingEvents(tokens.accessToken, { maxResults })
+    const accessToken = await this.getValidAccessToken()
+    return listUpcomingEvents(accessToken, { maxResults })
   }
 }
