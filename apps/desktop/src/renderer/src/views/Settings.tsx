@@ -2,6 +2,7 @@ import { PageHeader } from '../components/layout/PageHeader'
 import { Spinner } from '../components/ui/Spinner'
 import { useAppSettings } from '../lib/useAppSettings'
 import { AccountsSection } from './settings/AccountsSection'
+import { TrackedSendersSection } from './settings/TrackedSendersSection'
 import { ClerkSection } from './settings/ClerkSection'
 import { NotificationsSection } from './settings/NotificationsSection'
 import { AppearanceSection } from './settings/AppearanceSection'
@@ -20,6 +21,7 @@ export function Settings() {
       ) : (
         <>
           <AccountsSection />
+          <TrackedSendersSection />
           <ClerkSection settings={settings} onChange={update} />
           <NotificationsSection settings={settings} onChange={update} />
           <AppearanceSection settings={settings} onChange={update} />

@@ -14,7 +14,7 @@ import type { SituationSourceSummary } from '@shared/ipc-channels'
 import { useNavStore } from '../lib/nav'
 import { queryKeys } from '../lib/queryClient'
 import { useToastStore } from '../lib/toast'
-import { formatAmount } from '../lib/format'
+import { formatAmount, formatDeadlineCountdown } from '../lib/format'
 import { Button } from '../components/ui/Button'
 import { Dialog } from '../components/ui/Dialog'
 import { Spinner } from '../components/ui/Spinner'
@@ -115,7 +115,8 @@ export function SituationDetail({ situationId }: { situationId: string }) {
         {detail.deadline && (
           <div>
             <p className={styles.metaLabel}>Deadline</p>
-            <p className={styles.metaValue}>
+            <p className={styles.metaValue}>{formatDeadlineCountdown(detail.deadline)}</p>
+            <p className={styles.metaSubvalue}>
               {new Date(`${detail.deadline}T00:00:00`).toLocaleDateString(undefined, {
                 month: 'long',
                 day: 'numeric',

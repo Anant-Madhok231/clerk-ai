@@ -62,6 +62,21 @@
   background: var(--color-text-tertiary);
 }
 
+.textInput {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  min-width: 0;
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
 .aboutLink {
   color: var(--color-accent);
   cursor: pointer;

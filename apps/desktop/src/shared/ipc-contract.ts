@@ -43,6 +43,16 @@ const NotificationsPatchSchema = z
   })
   .partial()
 
+export const AddTrackedSenderInputSchema = z.object({
+  matchType: z.enum(['EXACT_EMAIL', 'DOMAIN']),
+  value: z.string().min(1),
+  displayName: z.string()
+})
+
+export const RemoveTrackedSenderInputSchema = z.object({
+  id: z.string().min(1)
+})
+
 export const UpdateSettingsRequestSchema = z.object({
   theme: z.enum(['system', 'light', 'dark']).optional(),
   onboardingCompleted: z.boolean().optional(),

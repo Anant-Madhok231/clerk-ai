@@ -33,6 +33,10 @@ const clerkApi: ClerkApi = {
   clearOpenAIApiKey: () => ipcRenderer.invoke(IPC_CHANNELS.clearOpenAIApiKey),
   deleteAllData: () => ipcRenderer.invoke(IPC_CHANNELS.deleteAllData),
 
+  listTrackedSenders: () => ipcRenderer.invoke(IPC_CHANNELS.listTrackedSenders),
+  addTrackedSender: (input) => ipcRenderer.invoke(IPC_CHANNELS.addTrackedSender, input),
+  removeTrackedSender: (id) => ipcRenderer.invoke(IPC_CHANNELS.removeTrackedSender, { id }),
+
   openExternal: (url) => ipcRenderer.invoke(IPC_CHANNELS.openExternal, { url }),
   getAppInfo: () => ipcRenderer.invoke(IPC_CHANNELS.getAppInfo),
 

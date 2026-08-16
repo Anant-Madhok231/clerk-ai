@@ -36,6 +36,8 @@ export interface ClassificationSourceItem {
   snippet: string | null
   /** Full extracted message text, when available — classification should prefer this over snippet, which is only a short Gmail-generated preview. */
   body?: string | null
+  /** True when the sender matches one of the user's Tracked Senders (exact address or domain) — a preference signal, not a rules engine: increases attention, never fabricates urgency that isn't in the text. */
+  isTrackedSender?: boolean
   receivedAt: string
 }
 

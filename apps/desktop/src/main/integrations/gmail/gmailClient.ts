@@ -38,6 +38,56 @@ export async function listRecentMessageIds(
   return payload.messages ?? []
 }
 
+export interface ListMessagesInWindowOptions {
+  /** How many days back to search, e.g. 10 for a first-connection bootstrap backfill. */
+  days: number
+  /** Safety cap on total messages fetched across all pages — prevents an unbounded scan on a very high-volume inbox. */
+  maxTotal?: number
+  fetchImpl?: typeof fetch
+}
+
+/**
+ * Paginated — follows Gmail's nextPageToken until the window is fully
+ * covered or maxTotal is hit. listRecentMessageIds() deliberately does not
+ * do this (a single bounded page is correct for a cheap periodic check);
+ * this is for a one-time backfill where every message in the window must
+ * actually be discovered, not just the newest page of them.
+ */
+export async function listAllMessageIdsInWindow(
+  accessToken: string,
+  options: ListMessagesInWindowOptions
+): Promise<GmailMessageListItem[]> {
+  const fetchImpl = options.fetchImpl ?? fetch
+  const maxTotal = options.maxTotal ?? 300
+  const results: GmailMessageListItem[] = []
+  let pageToken: string | undefined
+
+  do {
+    const url = new URL(GMAIL_MESSAGES_URL)
+    url.searchParams.set('maxResults', '100')
+    url.searchParams.set('q', `-in:spam -in:trash -in:sent -in:drafts newer_than:${options.days}d`)
+    if (pageToken) url.searchParams.set('pageToken', pageToken)
+
+    const response = await fetchImpl(url.toString(), {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    })
+
+    if (!response.ok) {
+      const text = await response.text()
+      throw new Error(`Gmail API error (${response.status}): ${text}`)
+    }
+
+    const payload = (await response.json()) as {
+      messages?: GmailMessageListItem[]
+      nextPageToken?: string
+    }
+    results.push(...(payload.messages ?? []))
+    pageToken = payload.nextPageToken
+  } while (pageToken && results.length < maxTotal)
+
+  return results.slice(0, maxTotal)
+}
+
 export interface GmailMessageDetail {
   id: string
   threadId: string
@@ -78,8 +128,18 @@ const HTML_ENTITIES: Record<string, string> = {
   nbsp: ' '
 }
 
+// Zero-width/invisible characters -- some marketing/tracking templates pad
+// their content with runs of these (anti-scraping, list-hygiene tricks),
+// which otherwise show up as literal glyphs anywhere this text is
+// displayed. Applies to Gmail's own snippet field too, not just body text
+// extracted from HTML -- the snippet is generated server-side by Gmail from
+// the original message and can carry the same characters straight through.
+function stripInvisibleChars(text: string): string {
+  return text.replace(/[\u200B-\u200F\uFEFF\u00AD]/g, '')
+}
+
 function htmlToText(html: string): string {
-  return html
+  return stripInvisibleChars(html)
     .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
     .replace(/<(br|\/p|\/div|\/tr|\/li|\/h[1-6])\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, ' ')
@@ -141,7 +201,7 @@ export async function getMessage(
     threadId: payload.threadId,
     subject,
     from,
-    snippet: payload.snippet,
+    snippet: stripInvisibleChars(payload.snippet),
     body: extractBodyText(payload.payload),
     internalDate: payload.internalDate
   }

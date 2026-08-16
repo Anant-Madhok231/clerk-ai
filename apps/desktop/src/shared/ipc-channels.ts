@@ -31,6 +31,10 @@ export const IPC_CHANNELS = {
   clearOpenAIApiKey: 'settings:clearOpenAIApiKey',
   deleteAllData: 'settings:deleteAllData',
 
+  listTrackedSenders: 'trackedSenders:list',
+  addTrackedSender: 'trackedSenders:add',
+  removeTrackedSender: 'trackedSenders:remove',
+
   situationsChanged: 'clerk:situationsChanged',
   syncStatusChanged: 'clerk:syncStatusChanged',
   navigateToSettings: 'clerk:navigateToSettings',
@@ -100,6 +104,21 @@ export interface UpcomingCalendarEventView {
   title: string
   start: string
   isAllDay: boolean
+}
+
+export type TrackedSenderMatchType = 'EXACT_EMAIL' | 'DOMAIN'
+
+export interface TrackedSenderView {
+  id: string
+  matchType: TrackedSenderMatchType
+  value: string
+  displayName: string
+}
+
+export interface AddTrackedSenderInput {
+  matchType: TrackedSenderMatchType
+  value: string
+  displayName: string
 }
 
 export interface SyncStatus {
@@ -184,6 +203,10 @@ export interface ClerkApi {
   setOpenAIApiKey(apiKey: string): Promise<void>
   clearOpenAIApiKey(): Promise<void>
   deleteAllData(): Promise<void>
+
+  listTrackedSenders(): Promise<TrackedSenderView[]>
+  addTrackedSender(input: AddTrackedSenderInput): Promise<TrackedSenderView[]>
+  removeTrackedSender(id: string): Promise<TrackedSenderView[]>
 
   openExternal(url: string): Promise<void>
   getAppInfo(): Promise<AppInfo>

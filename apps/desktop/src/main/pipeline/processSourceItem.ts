@@ -5,6 +5,7 @@ import type { Db } from '../db/client'
 import { situation, situationEvent, situationSource, sourceItem } from '../db/schema'
 import type { AIProvider } from '../ai/AIProvider'
 import { findCandidateSituations } from './matcher'
+import { isTrackedSender } from '../settings/trackedSenders'
 
 export interface IncomingSourceItem {
   sourceType: string
@@ -77,6 +78,7 @@ export async function processSourceItem(
       subject: input.subject ?? null,
       snippet: input.snippet ?? null,
       body: input.body ?? null,
+      isTrackedSender: isTrackedSender(db, input.sender),
       receivedAt: input.receivedAt
     },
     candidates

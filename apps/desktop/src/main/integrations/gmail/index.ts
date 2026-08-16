@@ -4,7 +4,12 @@ import { processSourceItem, type ProcessResult } from '../../pipeline/processSou
 import { GOOGLE_SCOPES } from '../google/oauthClient'
 import { ensureFreshAccessToken, performGoogleOAuthConnection } from '../google/googleOAuthConnection'
 import { clearTokens, loadTokens, saveTokens } from './tokenStore'
-import { getMessage, listRecentMessageIds, type GmailMessageListItem } from './gmailClient'
+import {
+  getMessage,
+  listAllMessageIdsInWindow,
+  listRecentMessageIds,
+  type GmailMessageListItem
+} from './gmailClient'
 
 export interface GmailAdapterOptions {
   clientId: string
@@ -61,8 +66,30 @@ export class GmailAdapter {
    */
   async sync(aiProvider: AIProvider, maxResults = 20): Promise<ProcessResult[]> {
     const accessToken = await this.getValidAccessToken()
-
     const messages = await listRecentMessageIds(accessToken, { maxResults })
+    return this.processMessages(accessToken, aiProvider, messages)
+  }
+
+  /**
+   * One-time deep backfill of everything in the last `days` (default 10),
+   * fully paginated -- unlike sync(), which only looks at a small bounded
+   * page for cheap periodic checks. Run once after first connect and once
+   * for pre-existing installs that connected before this existed (see
+   * gmailBootstrap.ts for the completion marker); safe to call more than
+   * once regardless, since processSourceItem's provider/providerId dedupe
+   * makes reprocessing the same message a no-op.
+   */
+  async bootstrapSync(aiProvider: AIProvider, days = 10): Promise<ProcessResult[]> {
+    const accessToken = await this.getValidAccessToken()
+    const messages = await listAllMessageIdsInWindow(accessToken, { days })
+    return this.processMessages(accessToken, aiProvider, messages)
+  }
+
+  private async processMessages(
+    accessToken: string,
+    aiProvider: AIProvider,
+    messages: GmailMessageListItem[]
+  ): Promise<ProcessResult[]> {
     const results: ProcessResult[] = []
     for (const { id } of messages) {
       const detail = await getMessage(accessToken, id)

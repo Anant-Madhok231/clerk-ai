@@ -13,6 +13,7 @@ import { createTray, refreshTray, type TrayDependencies } from './tray/createTra
 import { checkGmailNow } from './sync/checkNow'
 import { startBackgroundScheduler } from './sync/backgroundScheduler'
 import { deleteDemoSituationData } from './situations/deleteDemoData'
+import { runGmailBootstrapIfNeeded } from './sync/gmailBootstrap'
 import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
@@ -124,6 +125,11 @@ app.whenReady().then(() => {
   if (gmailAdapter.isConnected() || calendarAdapter.isConnected()) {
     deleteDemoSituationData(db)
   }
+
+  // Covers installs that connected Gmail before the 10-day backfill existed
+  // -- runs once, self-terminates via the completion marker, no
+  // disconnect/reconnect required. Fire-and-forget: must not block startup.
+  void runGmailBootstrapIfNeeded({ db, aiProvider, gmailAdapter })
 
   let window = createWindow(db)
   registerMainWindow(window)

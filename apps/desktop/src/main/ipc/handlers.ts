@@ -1,8 +1,10 @@
 import { app, dialog, ipcMain, shell } from 'electron'
 import {
+  AddTrackedSenderInputSchema,
   ImportDocumentRequestSchema,
   IPC_CHANNELS,
   OpenExternalRequestSchema,
+  RemoveTrackedSenderInputSchema,
   SetOpenAIApiKeyRequestSchema,
   SituationIdRequestSchema,
   UpdateSettingsRequestSchema
@@ -19,6 +21,7 @@ import type {
   SituationDetail,
   SituationListItem,
   SyncStatus,
+  TrackedSenderView,
   UpcomingCalendarEventView
 } from '@shared/ipc-channels'
 import type { Db } from '../db/client'
@@ -31,6 +34,8 @@ import { addSituationToCalendar } from '../situations/addToCalendar'
 import { markSituationComplete } from '../situations/markComplete'
 import { deleteAllSituationData } from '../situations/deleteAllData'
 import { deleteDemoSituationData } from '../situations/deleteDemoData'
+import { addTrackedSender, getTrackedSenders, removeTrackedSender } from '../settings/trackedSenders'
+import { runGmailBootstrapIfNeeded } from '../sync/gmailBootstrap'
 import { importDocument } from '../documents/importDocument'
 import { getAppSettings, updateAppSettings } from '../settings/appSettings'
 import { clearOpenAIApiKey, loadOpenAIApiKey, saveOpenAIApiKey } from '../ai/apiKeyStore'
@@ -85,6 +90,11 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
     deleteDemoSituationData(db)
     broadcastSituationsChanged()
     broadcastSyncStatusChanged()
+    // Fire-and-forget: the 10-day backfill can take a while on a real
+    // inbox, and the renderer shouldn't wait on it to know Gmail connected.
+    // syncStatusChanged/situationsChanged broadcasts (inside the bootstrap
+    // itself) update the UI as results land.
+    void runGmailBootstrapIfNeeded({ db, aiProvider, gmailAdapter })
     return { connected: gmailAdapter.isConnected() }
   })
 
@@ -166,6 +176,25 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
     deleteAllSituationData(db)
     broadcastSituationsChanged()
   })
+
+  // --- Tracked senders -----------------------------------------------
+  ipcMain.handle(IPC_CHANNELS.listTrackedSenders, (): TrackedSenderView[] => getTrackedSenders(db))
+
+  ipcMain.handle(
+    IPC_CHANNELS.addTrackedSender,
+    (_event, payload: unknown): TrackedSenderView[] => {
+      const input = AddTrackedSenderInputSchema.parse(payload)
+      return addTrackedSender(db, input)
+    }
+  )
+
+  ipcMain.handle(
+    IPC_CHANNELS.removeTrackedSender,
+    (_event, payload: unknown): TrackedSenderView[] => {
+      const { id } = RemoveTrackedSenderInputSchema.parse(payload)
+      return removeTrackedSender(db, id)
+    }
+  )
 
   // --- App / shell -------------------------------------------------
   ipcMain.handle(IPC_CHANNELS.openExternal, async (_event, payload: unknown): Promise<void> => {

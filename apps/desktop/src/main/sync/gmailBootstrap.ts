@@ -1,0 +1,58 @@
+import { eq } from 'drizzle-orm'
+import type { Db } from '../db/client'
+import { settings } from '../db/schema'
+import type { AIProvider } from '../ai/AIProvider'
+import type { GmailAdapter } from '../integrations/gmail'
+import { getAppSettings } from '../settings/appSettings'
+import { notifyForResults, notifyUpcomingDeadlines } from '../notifications/notifyForResults'
+import { broadcastSituationsChanged, broadcastSyncStatusChanged } from '../events/broadcast'
+import { recordCheckCompleted, setChecking } from './syncStatus'
+
+const BOOTSTRAP_KEY = 'gmail.bootstrapCompletedAt'
+
+export function isGmailBootstrapCompleted(db: Db): boolean {
+  return db.select().from(settings).where(eq(settings.key, BOOTSTRAP_KEY)).get() !== undefined
+}
+
+export function markGmailBootstrapCompleted(db: Db): void {
+  const now = new Date().toISOString()
+  db.insert(settings)
+    .values({ key: BOOTSTRAP_KEY, value: now, updatedAt: now })
+    .onConflictDoUpdate({ target: settings.key, set: { value: now, updatedAt: now } })
+    .run()
+}
+
+export interface GmailBootstrapDependencies {
+  db: Db
+  aiProvider: AIProvider
+  gmailAdapter: GmailAdapter
+}
+
+/**
+ * Runs the one-time 10-day backfill if it hasn't run yet for this install,
+ * whether that's because Gmail was just connected for the first time or
+ * because this is an existing install that connected before bootstrap
+ * existed. Safe to call on every app startup and after every connect() --
+ * it's a no-op once the completion marker is set, and even a legitimate
+ * re-run can't create duplicates (processSourceItem's provider/providerId
+ * dedupe already guarantees that).
+ */
+export async function runGmailBootstrapIfNeeded(deps: GmailBootstrapDependencies): Promise<void> {
+  if (!deps.gmailAdapter.isConnected()) return
+  if (isGmailBootstrapCompleted(deps.db)) return
+
+  setChecking(true)
+  broadcastSyncStatusChanged()
+  try {
+    const results = await deps.gmailAdapter.bootstrapSync(deps.aiProvider)
+    markGmailBootstrapCompleted(deps.db)
+    recordCheckCompleted(deps.db)
+    if (results.length > 0) broadcastSituationsChanged()
+    const settings = getAppSettings(deps.db)
+    notifyForResults(deps.db, settings, results)
+    notifyUpcomingDeadlines(deps.db, settings)
+  } finally {
+    setChecking(false)
+    broadcastSyncStatusChanged()
+  }
+}

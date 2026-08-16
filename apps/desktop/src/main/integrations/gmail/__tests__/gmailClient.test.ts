@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { getMessage, listRecentMessageIds } from '../gmailClient'
+import { getMessage, listAllMessageIdsInWindow, listRecentMessageIds } from '../gmailClient'
 
 describe('listRecentMessageIds', () => {
   it('sends the bearer token and a bounded maxResults, and parses the message list', async () => {
@@ -168,5 +168,66 @@ describe('getMessage', () => {
     const result = await getMessage('token-abc', 'msg-2', fetchImpl as unknown as typeof fetch)
     expect(result.subject).toBeNull()
     expect(result.from).toBeNull()
+  })
+})
+
+describe('listAllMessageIdsInWindow', () => {
+  it('follows nextPageToken until Gmail reports no more pages', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messages: [{ id: 'm1', threadId: 't1' }, { id: 'm2', threadId: 't2' }],
+          nextPageToken: 'page-2'
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          messages: [{ id: 'm3', threadId: 't3' }]
+          // no nextPageToken -- last page
+        })
+      })
+
+    const result = await listAllMessageIdsInWindow('token-abc', {
+      days: 10,
+      fetchImpl: fetchImpl as unknown as typeof fetch
+    })
+
+    expect(result).toEqual([
+      { id: 'm1', threadId: 't1' },
+      { id: 'm2', threadId: 't2' },
+      { id: 'm3', threadId: 't3' }
+    ])
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+    const secondCallUrl = String(fetchImpl.mock.calls[1]![0])
+    expect(secondCallUrl).toContain('pageToken=page-2')
+  })
+
+  it('uses the requested day window in the query, not the 30-day default', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ messages: [] }) })
+    await listAllMessageIdsInWindow('token-abc', { days: 10, fetchImpl: fetchImpl as unknown as typeof fetch })
+    const query = new URL(String(fetchImpl.mock.calls[0]![0])).searchParams.get('q')
+    expect(query).toContain('newer_than:10d')
+  })
+
+  it('stops paginating once maxTotal is reached, even if Gmail has more pages', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        messages: Array.from({ length: 100 }, (_, i) => ({ id: `m${i}`, threadId: `t${i}` })),
+        nextPageToken: 'always-more'
+      })
+    })
+
+    const result = await listAllMessageIdsInWindow('token-abc', {
+      days: 10,
+      maxTotal: 150,
+      fetchImpl: fetchImpl as unknown as typeof fetch
+    })
+
+    expect(result.length).toBe(150)
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
   })
 })

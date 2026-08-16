@@ -1,17 +1,12 @@
 import { Calendar, CheckCircle2, User } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { SituationListItem } from '@shared/ipc-channels'
-import { formatAmount } from '../../lib/format'
+import { formatAmount, formatDeadlineCountdown } from '../../lib/format'
 import { queryKeys } from '../../lib/queryClient'
 import { Card } from '../ui/Card'
 import { StatusBadge } from './StatusBadge'
 import { ConfidenceBadge } from './ConfidenceBadge'
 import styles from './SituationCard.module.css'
-
-function formatDeadline(deadline: string): string {
-  const date = new Date(`${deadline}T00:00:00`)
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-}
 
 export function SituationCard({ item, onClick }: { item: SituationListItem; onClick: () => void }) {
   const queryClient = useQueryClient()
@@ -54,7 +49,7 @@ export function SituationCard({ item, onClick }: { item: SituationListItem; onCl
           {item.deadline ? (
             <span className={styles.metaItem}>
               <Calendar className={styles.metaIcon} />
-              Due {formatDeadline(item.deadline)}
+              {formatDeadlineCountdown(item.deadline)}
             </span>
           ) : null}
           {item.waitingOn ? (
