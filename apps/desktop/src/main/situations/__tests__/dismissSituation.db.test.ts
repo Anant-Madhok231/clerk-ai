@@ -54,11 +54,11 @@ function seedSituationWithSource(current: ScratchDb) {
 }
 
 describe('dismissSituation', () => {
-  it('marks the situation dismissed with reason user and logs the event', () => {
+  it('marks the situation dismissed with reason user and logs the event, learnSimilar false', () => {
     current = createScratchDb()
     const id = seedSituationWithSource(current)
 
-    dismissSituation(current.db, id)
+    dismissSituation(current.db, id, false)
 
     const row = current.db.select().from(situation).where(eq(situation.id, id)).get()
     expect(row?.dismissed).toBe(true)
@@ -68,11 +68,23 @@ describe('dismissSituation', () => {
     expect(events.map((e) => e.eventType)).toEqual(['DISMISSED'])
   })
 
-  it('records a dismissal signal that future similar mail will match', () => {
+  it('does not record a dismissal signal when learnSimilar is false', () => {
     current = createScratchDb()
     const id = seedSituationWithSource(current)
 
-    dismissSituation(current.db, id)
+    dismissSituation(current.db, id, false)
+
+    expect(getDismissalSignals(current.db)).toEqual([])
+    expect(
+      matchesDismissalSignal(current.db, { sender: 'deals@retailer.com', subject: 'anything' })
+    ).toBe(false)
+  })
+
+  it('records a dismissal signal that future similar mail will match when learnSimilar is true', () => {
+    current = createScratchDb()
+    const id = seedSituationWithSource(current)
+
+    dismissSituation(current.db, id, true)
 
     const signals = getDismissalSignals(current.db)
     expect(signals).toHaveLength(1)
@@ -85,6 +97,6 @@ describe('dismissSituation', () => {
 
   it('throws for a situation that does not exist', () => {
     current = createScratchDb()
-    expect(() => dismissSituation(current.db, 'nope')).toThrow(SituationNotFoundError)
+    expect(() => dismissSituation(current.db, 'nope', false)).toThrow(SituationNotFoundError)
   })
 })

@@ -7,6 +7,7 @@ import {
   RemoveTrackedSenderInputSchema,
   SetOpenAIApiKeyRequestSchema,
   SituationIdRequestSchema,
+  DismissSituationRequestSchema,
   UpdateSettingsRequestSchema
 } from '@shared/ipc-contract'
 import type {
@@ -87,8 +88,8 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
   })
 
   ipcMain.handle(IPC_CHANNELS.dismissSituation, (_event, payload: unknown): void => {
-    const { situationId } = SituationIdRequestSchema.parse(payload)
-    dismissSituation(db, situationId)
+    const { situationId, learnSimilar } = DismissSituationRequestSchema.parse(payload)
+    dismissSituation(db, situationId, learnSimilar)
     broadcastSituationsChanged()
   })
 

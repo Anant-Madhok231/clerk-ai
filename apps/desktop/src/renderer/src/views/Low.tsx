@@ -12,15 +12,15 @@ export function Low() {
     queryFn: () => window.clerk.listSituations()
   })
 
-  const { dismissed, possibleSpam } = useMemo(() => {
+  const { lowRate, lowLike } = useMemo(() => {
     const items = [...(data ?? [])].filter((i) => i.dismissed).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     return {
-      dismissed: items.filter((i) => i.dismissalReason === 'user'),
-      possibleSpam: items.filter((i) => i.dismissalReason === 'auto-similar')
+      lowRate: items.filter((i) => i.dismissalReason === 'user'),
+      lowLike: items.filter((i) => i.dismissalReason === 'auto-similar')
     }
   }, [data])
 
-  const isEmpty = !isLoading && !isError && dismissed.length === 0 && possibleSpam.length === 0
+  const isEmpty = !isLoading && !isError && lowRate.length === 0 && lowLike.length === 0
 
   return (
     <div className="clerk-page">
@@ -33,22 +33,16 @@ export function Low() {
         />
       ) : (
         <>
-          {dismissed.length > 0 && (
+          {lowRate.length > 0 && (
             <section className="clerk-section">
-              <p className="clerk-section-title">Dismissed</p>
-              <SituationList items={dismissed} isLoading={isLoading} isError={isError} from="low" emptyState={null} />
+              <p className="clerk-section-title">Low-Rate</p>
+              <SituationList items={lowRate} isLoading={isLoading} isError={isError} from="low" emptyState={null} />
             </section>
           )}
-          {possibleSpam.length > 0 && (
+          {lowLike.length > 0 && (
             <section className="clerk-section">
-              <p className="clerk-section-title">Possible Spam</p>
-              <SituationList
-                items={possibleSpam}
-                isLoading={isLoading}
-                isError={isError}
-                from="low"
-                emptyState={null}
-              />
+              <p className="clerk-section-title">Low-Like</p>
+              <SituationList items={lowLike} isLoading={isLoading} isError={isError} from="low" emptyState={null} />
             </section>
           )}
         </>

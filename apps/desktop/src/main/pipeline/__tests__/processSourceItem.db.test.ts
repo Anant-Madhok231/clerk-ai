@@ -120,7 +120,7 @@ describe('processSourceItem', () => {
     expect(first.outcome).toBe('created')
     if (first.outcome !== 'created') throw new Error('unreachable')
 
-    dismissSituation(db, first.situationId)
+    dismissSituation(db, first.situationId, true)
 
     const second = await processSourceItem(db, provider, {
       sourceType: 'demo',

@@ -11,6 +11,11 @@ export const SituationIdRequestSchema = z.object({
   situationId: z.string().min(1)
 })
 
+export const DismissSituationRequestSchema = z.object({
+  situationId: z.string().min(1),
+  learnSimilar: z.boolean()
+})
+
 export const ImportDocumentRequestSchema = z.object({
   filePath: z.string().min(1)
 })

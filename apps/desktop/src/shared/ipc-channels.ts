@@ -187,7 +187,7 @@ export interface ClerkApi {
   getSituationDetail(situationId: string): Promise<SituationDetail | null>
   addSituationToCalendar(situationId: string): Promise<AddToCalendarResult>
   markSituationComplete(situationId: string): Promise<void>
-  dismissSituation(situationId: string): Promise<void>
+  dismissSituation(situationId: string, learnSimilar: boolean): Promise<void>
   restoreSituation(situationId: string): Promise<void>
 
   gmailConnect(): Promise<GmailStatus>

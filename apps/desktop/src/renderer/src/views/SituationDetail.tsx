@@ -55,6 +55,7 @@ export function SituationDetail({ situationId }: { situationId: string }) {
   const queryClient = useQueryClient()
   const showToast = useToastStore((state) => state.show)
   const [confirmingCalendar, setConfirmingCalendar] = useState(false)
+  const [confirmingDismiss, setConfirmingDismiss] = useState(false)
 
   const { data: detail, isLoading } = useQuery({
     queryKey: queryKeys.situationDetail(situationId),
@@ -86,13 +87,17 @@ export function SituationDetail({ situationId }: { situationId: string }) {
   })
 
   const dismiss = useMutation({
-    mutationFn: () => window.clerk.dismissSituation(situationId),
+    mutationFn: (learnSimilar: boolean) => window.clerk.dismissSituation(situationId, learnSimilar),
     onSuccess: () => {
+      setConfirmingDismiss(false)
       showToast('Moved to Low.', 'success')
       queryClient.invalidateQueries({ queryKey: queryKeys.situations })
       queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
     },
-    onError: (error: Error) => showToast(error.message, 'error')
+    onError: (error: Error) => {
+      setConfirmingDismiss(false)
+      showToast(error.message, 'error')
+    }
   })
 
   const restore = useMutation({
@@ -187,8 +192,8 @@ export function SituationDetail({ situationId }: { situationId: string }) {
             <RotateCcw size={14} /> {restore.isPending ? 'Restoring…' : 'Not Spam, Restore'}
           </Button>
         ) : (
-          <Button variant="secondary" onClick={() => dismiss.mutate()} disabled={dismiss.isPending}>
-            <MailX size={14} /> {dismiss.isPending ? 'Moving…' : 'Not Needed / Spam'}
+          <Button variant="secondary" onClick={() => setConfirmingDismiss(true)}>
+            <MailX size={14} /> Not Needed / Spam
           </Button>
         )}
       </div>
@@ -226,6 +231,28 @@ export function SituationDetail({ situationId }: { situationId: string }) {
               day: 'numeric',
               year: 'numeric'
             })}
+        </Dialog>
+      )}
+
+      {confirmingDismiss && (
+        <Dialog
+          title="Not needed / spam"
+          onClose={() => setConfirmingDismiss(false)}
+          actions={
+            <>
+              <Button variant="ghost" onClick={() => setConfirmingDismiss(false)}>
+                Cancel
+              </Button>
+              <Button variant="secondary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(false)}>
+                Just this one
+              </Button>
+              <Button variant="primary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(true)}>
+                Also hide similar mail
+              </Button>
+            </>
+          }
+        >
+          Just hide this one in Low-Rate, or also file mail that looks similar to it under Low-Like from now on?
         </Dialog>
       )}
     </div>
