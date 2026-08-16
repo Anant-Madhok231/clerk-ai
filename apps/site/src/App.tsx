@@ -1,10 +1,16 @@
+import { useState } from 'react'
 import { ArrowRight, FileText, GitFork, Lock, Mail, Sparkles, Zap } from 'lucide-react'
 import { ClerkMark } from './components/ClerkMark'
 import { DemoApp } from './components/DemoApp'
+import { DownloadGateModal, type DownloadTarget } from './components/DownloadGateModal'
 import styles from './App.module.css'
 
 const REPO_URL = 'https://github.com/Anant-Madhok231/clerk-ai'
 const RELEASES_URL = 'https://github.com/Anant-Madhok231/clerk-ai/releases'
+
+// Bump alongside the desktop app's own version (apps/desktop/package.json) —
+// used only for the beta-access-request email sent to the admin.
+const CLERK_VERSION = '1.0.2'
 
 // Filenames are stable across versions (see electron-builder.yml), so these
 // always resolve to the newest published release without editing this file.
@@ -12,7 +18,27 @@ const DOWNLOAD_MAC_ARM64 = `${RELEASES_URL}/latest/download/Clerk-macOS-arm64.dm
 const DOWNLOAD_MAC_X64 = `${RELEASES_URL}/latest/download/Clerk-macOS-x64.dmg`
 const DOWNLOAD_WINDOWS = `${RELEASES_URL}/latest/download/Clerk-Setup.exe`
 
+const DOWNLOAD_TARGETS: Record<'macArm64' | 'macX64' | 'windows', DownloadTarget> = {
+  macArm64: { id: 'mac-arm64', label: 'macOS — Apple Silicon', url: DOWNLOAD_MAC_ARM64 },
+  macX64: { id: 'mac-x64', label: 'macOS — Intel', url: DOWNLOAD_MAC_X64 },
+  windows: { id: 'windows', label: 'Windows', url: DOWNLOAD_WINDOWS }
+}
+
+const BETA_EMAIL_STORAGE_KEY = 'clerk-beta-email'
+
 export function App() {
+  const [gateTarget, setGateTarget] = useState<DownloadTarget | null>(null)
+
+  function handleDownloadClick(target: DownloadTarget) {
+    // Once a visitor has submitted a beta-access request this browser
+    // session, don't ask again — just start the next download directly.
+    if (sessionStorage.getItem(BETA_EMAIL_STORAGE_KEY)) {
+      window.location.href = target.url
+      return
+    }
+    setGateTarget(target)
+  }
+
   return (
     <>
       <header className="container">
@@ -42,9 +68,13 @@ export function App() {
             your attention. Everything runs locally on your computer.
           </p>
           <div className={styles.heroActions}>
-            <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_ARM64}>
+            <button
+              type="button"
+              className={`${styles.button} ${styles.buttonPrimary}`}
+              onClick={() => handleDownloadClick(DOWNLOAD_TARGETS.macArm64)}
+            >
               Download for Mac
-            </a>
+            </button>
             <a className={`${styles.button} ${styles.buttonSecondary}`} href="#demo">
               Try Demo
             </a>
@@ -141,25 +171,37 @@ export function App() {
               <ClerkMark size={32} />
               <h3>Mac — Apple Silicon</h3>
               <p>M1 and later</p>
-              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_ARM64}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                onClick={() => handleDownloadClick(DOWNLOAD_TARGETS.macArm64)}
+              >
                 Download .dmg
-              </a>
+              </button>
             </div>
             <div className={styles.downloadCard}>
               <ClerkMark size={32} />
               <h3>Mac — Intel</h3>
               <p>2020 and earlier</p>
-              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_MAC_X64}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                onClick={() => handleDownloadClick(DOWNLOAD_TARGETS.macX64)}
+              >
                 Download .dmg
-              </a>
+              </button>
             </div>
             <div className={styles.downloadCard}>
               <ClerkMark size={32} />
               <h3>Windows</h3>
               <p>Windows 10 &amp; 11</p>
-              <a className={`${styles.button} ${styles.buttonPrimary}`} href={DOWNLOAD_WINDOWS}>
+              <button
+                type="button"
+                className={`${styles.button} ${styles.buttonPrimary}`}
+                onClick={() => handleDownloadClick(DOWNLOAD_TARGETS.windows)}
+              >
                 Download .exe
-              </a>
+              </button>
             </div>
           </div>
           <p className={styles.demoHint}>
@@ -179,6 +221,15 @@ export function App() {
           </div>
         </div>
       </footer>
+
+      {gateTarget && (
+        <DownloadGateModal
+          target={gateTarget}
+          clerkVersion={CLERK_VERSION}
+          onClose={() => setGateTarget(null)}
+          onSuccess={(email) => sessionStorage.setItem(BETA_EMAIL_STORAGE_KEY, email)}
+        />
+      )}
     </>
   )
 }
