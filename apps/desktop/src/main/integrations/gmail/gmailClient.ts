@@ -18,7 +18,12 @@ export async function listRecentMessageIds(
   const fetchImpl = options.fetchImpl ?? fetch
   const url = new URL(GMAIL_MESSAGES_URL)
   url.searchParams.set('maxResults', String(options.maxResults ?? 20))
-  url.searchParams.set('q', '-in:spam -in:trash newer_than:30d')
+  // Gmail's default search scope (no `in:` filter) is All Mail, which
+  // includes the user's own Sent messages and Drafts -- without excluding
+  // them, a reply to a thread gets ingested as a new incoming SourceItem on
+  // that same thread, and classification can mistake "the user was active
+  // on this thread" for "the user's required action is done."
+  url.searchParams.set('q', '-in:spam -in:trash -in:sent -in:drafts newer_than:30d')
 
   const response = await fetchImpl(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` }

@@ -18,6 +18,18 @@ describe('listRecentMessageIds', () => {
     expect((init as RequestInit).headers).toEqual({ Authorization: 'Bearer token-abc' })
   })
 
+  it('excludes the user\'s own Sent and Drafts, not just spam/trash, so a reply is never ingested as a new incoming item on its own thread', async () => {
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ messages: [] })
+    })
+    await listRecentMessageIds('token-abc', { fetchImpl: fetchImpl as unknown as typeof fetch })
+    const call = fetchImpl.mock.calls[0]
+    const query = new URL(String(call![0])).searchParams.get('q')
+    expect(query).toContain('-in:sent')
+    expect(query).toContain('-in:drafts')
+  })
+
   it('returns an empty array when Gmail reports no messages', async () => {
     const fetchImpl = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) })
     const result = await listRecentMessageIds('token-abc', { fetchImpl: fetchImpl as unknown as typeof fetch })
