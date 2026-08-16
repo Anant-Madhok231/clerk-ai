@@ -17,8 +17,8 @@ export interface GmailAdapterOptions {
 }
 
 /**
- * Facade over the Gmail OAuth + API plumbing: system-browser consent ->
- * loopback redirect -> encrypted token storage -> bounded API calls ->
+ * wraps the gmail oauth + api plumbing: browser consent -> loopback
+ * redirect -> encrypted token storage -> bounded api calls ->
  * (via sync()) the same processSourceItem pipeline Demo Mode uses.
  */
 export class GmailAdapter {
@@ -45,7 +45,7 @@ export class GmailAdapter {
     clearTokens(this.db)
   }
 
-  /** Loads stored tokens, transparently refreshing an expired access token before returning it. */
+  /** grabs stored tokens, refreshing the access token first if it's expired */
   private async getValidAccessToken(): Promise<string> {
     const tokens = loadTokens(this.db)
     if (!tokens) throw new Error('Gmail is not connected.')
@@ -58,11 +58,10 @@ export class GmailAdapter {
   }
 
   /**
-   * Bounded fetch (default 20, last 30 days per gmailClient's query) of
-   * message metadata, normalized and run through the same ingestion
-   * pipeline Demo Mode uses. Not incremental (no Gmail history cursor) —
-   * relies on processSourceItem's provider/providerId dedupe to make
-   * repeated calls cheap rather than tracking a sync cursor.
+   * grabs a small bounded batch of recent messages (last 30 days, 20 max)
+   * and runs them through the same pipeline demo mode uses. not
+   * incremental, just relies on dedupe to make repeat calls cheap instead
+   * of tracking a proper sync cursor
    */
   async sync(aiProvider: AIProvider, maxResults = 20): Promise<ProcessResult[]> {
     const accessToken = await this.getValidAccessToken()
@@ -71,13 +70,10 @@ export class GmailAdapter {
   }
 
   /**
-   * One-time deep backfill of everything in the last `days` (default 10),
-   * fully paginated -- unlike sync(), which only looks at a small bounded
-   * page for cheap periodic checks. Run once after first connect and once
-   * for pre-existing installs that connected before this existed (see
-   * gmailBootstrap.ts for the completion marker); safe to call more than
-   * once regardless, since processSourceItem's provider/providerId dedupe
-   * makes reprocessing the same message a no-op.
+   * one time deep backfill of the last 10 days, fully paginated, unlike
+   * sync() which just grabs a small page. runs once after first connect
+   * and once for old installs that connected before this existed. safe to
+   * call more than once, dedupe makes it a no-op either way
    */
   async bootstrapSync(aiProvider: AIProvider, days = 10): Promise<ProcessResult[]> {
     const accessToken = await this.getValidAccessToken()

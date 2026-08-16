@@ -1,4 +1,4 @@
-/** The Clerk app mark: a rounded tile with a checkmark — legible down to tray-icon size. Source of truth for the generated app/tray/favicon icons (see scripts/generate-icons.mjs). */
+/** the clerk logo, a rounded tile with a checkmark, stays readable even at tiny tray-icon size. this is the source for all the generated icons */
 export function ClerkMark({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">

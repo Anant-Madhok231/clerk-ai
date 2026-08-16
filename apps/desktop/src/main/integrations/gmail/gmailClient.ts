@@ -10,7 +10,7 @@ export interface ListRecentMessagesOptions {
   fetchImpl?: typeof fetch
 }
 
-/** Bounded by design — this is called on every manual/background check, never a full-inbox dump. */
+/** kept small on purpose, this runs on every manual/background check, not a full inbox dump */
 export async function listRecentMessageIds(
   accessToken: string,
   options: ListRecentMessagesOptions = {}
@@ -18,11 +18,9 @@ export async function listRecentMessageIds(
   const fetchImpl = options.fetchImpl ?? fetch
   const url = new URL(GMAIL_MESSAGES_URL)
   url.searchParams.set('maxResults', String(options.maxResults ?? 20))
-  // Gmail's default search scope (no `in:` filter) is All Mail, which
-  // includes the user's own Sent messages and Drafts -- without excluding
-  // them, a reply to a thread gets ingested as a new incoming SourceItem on
-  // that same thread, and classification can mistake "the user was active
-  // on this thread" for "the user's required action is done."
+  // gmail searches all mail by default which includes your own sent stuff
+  // and drafts. without filtering those out, your own reply looks like a
+  // new incoming message and clerk thinks you already handled it
   url.searchParams.set('q', '-in:spam -in:trash -in:sent -in:drafts newer_than:30d')
 
   const response = await fetchImpl(url.toString(), {
@@ -39,20 +37,17 @@ export async function listRecentMessageIds(
 }
 
 export interface ListMessagesInWindowOptions {
-  /** How many days back to search, e.g. 10 for a first-connection bootstrap backfill. */
+  /** how many days back to search, 10 for the first-connect backfill */
   days: number
-  /** Safety cap on total messages fetched across all pages — prevents an unbounded scan on a very high-volume inbox. */
+  /** hard cap on total messages across all pages so a huge inbox can't scan forever */
   maxTotal?: number
   fetchImpl?: typeof fetch
 }
 
-/**
- * Paginated — follows Gmail's nextPageToken until the window is fully
- * covered or maxTotal is hit. listRecentMessageIds() deliberately does not
- * do this (a single bounded page is correct for a cheap periodic check);
- * this is for a one-time backfill where every message in the window must
- * actually be discovered, not just the newest page of them.
- */
+// follows gmail's nextPageToken til the whole window's covered or we hit
+// maxTotal. listRecentMessageIds doesn't bother with this (one page is
+// fine for a quick check) but a backfill needs to actually see everything,
+// not just the newest page
 export async function listAllMessageIdsInWindow(
   accessToken: string,
   options: ListMessagesInWindowOptions
@@ -94,9 +89,9 @@ export interface GmailMessageDetail {
   subject: string | null
   from: string | null
   snippet: string
-  /** Full extracted message text (plain-text preferred, HTML converted to text as fallback) — null if the message had no readable body part. */
+  /** full message text, prefers plain text and falls back to converted html, null if there's nothing readable */
   body: string | null
-  /** Epoch milliseconds, as a string — the format the Gmail API returns. */
+  /** epoch ms as a string, that's just how gmail sends it back */
   internalDate: string
 }
 
@@ -128,12 +123,9 @@ const HTML_ENTITIES: Record<string, string> = {
   nbsp: ' '
 }
 
-// Zero-width/invisible characters -- some marketing/tracking templates pad
-// their content with runs of these (anti-scraping, list-hygiene tricks),
-// which otherwise show up as literal glyphs anywhere this text is
-// displayed. Applies to Gmail's own snippet field too, not just body text
-// extracted from HTML -- the snippet is generated server-side by Gmail from
-// the original message and can carry the same characters straight through.
+// some marketing emails pad their content with invisible characters (anti
+// scraping stuff) which show up as weird glyphs if we don't strip them.
+// need to strip these from gmail's snippet field too, not just the body
 function stripInvisibleChars(text: string): string {
   return text.replace(/[\u200B-\u200F\uFEFF\u00AD]/g, '')
 }
@@ -150,7 +142,7 @@ function htmlToText(html: string): string {
     .trim()
 }
 
-/** Walks Gmail's (possibly nested multipart) payload tree, preferring the first text/plain part found and falling back to text/html converted to plain text. */
+/** digs through gmail's (maybe nested) payload tree, grabs plain text if it can find it, else converts the html part */
 function extractBodyText(part: RawGmailMessagePart | undefined): string | null {
   if (!part) return null
 
@@ -173,7 +165,7 @@ function extractBodyText(part: RawGmailMessagePart | undefined): string | null {
   return walk(part) ?? htmlFallback
 }
 
-/** Full-body fetch — used for classification. Content is used transiently and never persisted to the database, only the short Gmail-generated snippet is stored. */
+/** grabs the full body for classification, we don't save it to the db though, only the short snippet gets stored */
 export async function getMessage(
   accessToken: string,
   messageId: string,

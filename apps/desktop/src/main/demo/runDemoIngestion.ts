@@ -4,10 +4,9 @@ import { processSourceItem, type ProcessResult } from '../pipeline/processSource
 import { DEMO_FIXTURES } from './fixtures'
 
 /**
- * Feeds the demo fixtures through the real pipeline in received-at order.
- * Idempotent: processSourceItem's provider/providerId dedupe means running
- * this again (e.g. the user clicking "Load Demo Data" twice) doesn't
- * duplicate anything.
+ * feeds the demo fixtures through the real pipeline in order. safe to run
+ * twice, clicking "load demo data" again won't duplicate anything since
+ * processSourceItem already dedupes
  */
 export async function runDemoIngestion(db: Db, provider: AIProvider): Promise<ProcessResult[]> {
   const ordered = [...DEMO_FIXTURES].sort((a, b) => a.receivedAt.localeCompare(b.receivedAt))

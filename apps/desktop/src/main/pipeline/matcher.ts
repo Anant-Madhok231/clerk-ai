@@ -4,10 +4,9 @@ import { situation, situationSource, sourceItem } from '../db/schema'
 import type { SituationCandidate } from '../ai/AIProvider'
 
 /**
- * Deterministic-signal matching only — thread id is the strongest signal
- * available (a Gmail thread, or a shared demo fixture thread key).
- * Semantic/model-based matching for cases without a shared thread is a
- * later-phase concern that would sit behind this same function signature.
+ * just matches on thread id for now, that's the strongest signal we've got
+ * (a gmail thread or a shared demo fixture key). smarter matching for
+ * stuff without a shared thread is a later problem
  */
 export function findCandidateSituations(db: Db, threadId: string | null): SituationCandidate[] {
   if (!threadId) return []
@@ -20,8 +19,8 @@ export function findCandidateSituations(db: Db, threadId: string | null): Situat
     .where(eq(sourceItem.threadId, threadId))
     .all()
 
-  // Multiple prior source items on the same thread can point at the same
-  // situation; de-dupe before handing candidates to the classifier.
+  // same thread can have multiple old source items pointing at the same
+  // situation, gotta dedupe before sending candidates to the classifier
   const byId = new Map<string, SituationCandidate>()
   for (const row of rows) {
     byId.set(row.id, { id: row.id, title: row.title, status: row.status as SituationCandidate['status'] })

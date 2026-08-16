@@ -9,7 +9,7 @@ function formatAmount(amount: number, currency: string | null): string {
   return (currency ?? 'USD') === 'USD' ? `$${formatted}` : `${currency} ${formatted}`
 }
 
-/** Fires a native notification for freshly created high-priority actions and newly resolved situations — never for routine/low-priority updates, to avoid spam. */
+/** pops a native notification for new high priority stuff and things that just got resolved, skips routine/low priority stuff so it's not spammy */
 export function notifyForResults(db: Db, settings: AppSettings, results: ProcessResult[]): void {
   for (const result of results) {
     if (result.outcome === 'skipped-duplicate' || !result.situationId) continue
@@ -32,10 +32,9 @@ export function notifyForResults(db: Db, settings: AppSettings, results: Process
   }
 }
 
-// In-memory only: gates duplicate deadline reminders within a session. A
-// missed reminder after a restart is an acceptable trade-off for not
-// needing a persisted "already notified" table for what is, in the end, a
-// best-effort local reminder.
+// just in memory, stops duplicate deadline reminders within a session.
+// might miss one after a restart but that's fine, not worth a whole db
+// table for a best-effort reminder
 const notifiedDeadlineIds = new Set<string>()
 
 export function notifyUpcomingDeadlines(db: Db, settings: AppSettings): void {

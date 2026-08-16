@@ -15,7 +15,7 @@ export interface IncomingSourceItem {
   sender?: string | null
   subject?: string | null
   snippet?: string | null
-  /** Full extracted message text, when available. Not persisted — used only for this classification call. */
+  /** full message text if we have it, only used for this classification call, not saved anywhere */
   body?: string | null
   receivedAt: string
   fileName?: string | null
@@ -29,9 +29,9 @@ export type ProcessResult =
   | { outcome: 'updated'; situationId: string; status: SituationStatus; transitioned: boolean }
 
 /**
- * The single ingestion -> matching -> classification -> reconciliation ->
- * persistence entry point. Demo Mode and real Gmail/document ingestion both
- * call this — nothing UI-specific ever bypasses it.
+ * this is THE entry point: ingest -> match -> classify -> reconcile ->
+ * save. demo mode and real gmail/document stuff both go through here,
+ * nothing skips it
  */
 export async function processSourceItem(
   db: Db,

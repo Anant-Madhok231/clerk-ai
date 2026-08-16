@@ -32,8 +32,8 @@ Read the entire message body, not just the first sentence — deadlines, forms, 
 
 Respond with the JSON object only, no surrounding text.`
 
-// Keeps prompts a bounded size regardless of message length -- covers the
-// vast majority of real emails in full while capping worst-case cost/latency.
+// keeps prompts a reasonable size no matter how long the email is - covers
+// most real emails fully while capping worst case cost/latency
 const MAX_BODY_CHARS = 8000
 
 function buildUserPrompt(input: ClassificationInput): string {

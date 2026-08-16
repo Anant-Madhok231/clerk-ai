@@ -6,10 +6,9 @@ import { runMigrations } from './migrate'
 
 let db: Db | null = null
 
-// In a packaged build this must resolve to a copy of drizzle/migrations
-// shipped as an extraResource — handled by electron-builder config in the
-// packaging phase. In dev, app.getAppPath() is the apps/desktop directory,
-// where drizzle/migrations already lives.
+// in a packaged build this needs to point at the migrations copy that
+// electron-builder ships as an extraResource. in dev it's just the
+// apps/desktop folder where drizzle/migrations already lives anyway
 function resolveMigrationsFolder(): string {
   return join(app.getAppPath(), 'drizzle/migrations')
 }

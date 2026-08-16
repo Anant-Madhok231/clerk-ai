@@ -16,3 +16,5 @@ release/
 coverage/
 .vscode/*
 !.vscode/extensions.json
+CLAUDE.md
+.claude/

@@ -7,7 +7,7 @@ import styles from './SettingsSection.module.css'
 
 const TRACKED_SENDERS_KEY = ['trackedSenders'] as const
 
-/** Accepts "name@company.com" (exact) or "@company.com" / "company.com" (domain). */
+/** takes "name@company.com" for exact, or "@company.com" / "company.com" for domain */
 function parseSenderInput(raw: string): { matchType: 'EXACT_EMAIL' | 'DOMAIN'; value: string } | null {
   const trimmed = raw.trim()
   if (!trimmed) return null

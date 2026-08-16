@@ -6,11 +6,10 @@ export type SituationStatus = z.infer<typeof SituationStatusSchema>
 export const SituationPrioritySchema = z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
 export type SituationPriority = z.infer<typeof SituationPrioritySchema>
 
-// COMPLETED and INFORMATIONAL are terminal: a resolved or informational
-// situation doesn't reopen just because another message referencing it
-// arrives. ACTION and WAITING can move to any other state, including each
-// other (e.g. a bill gets paid — ACTION — but the receipt hasn't arrived
-// yet, so a later "processing" email could still legitimately mean WAITING).
+// completed and informational are final, a resolved situation doesn't
+// reopen just cause another message about it shows up. action and waiting
+// can move to anything else including each other (like a bill gets paid -
+// action - but the receipt hasn't come yet, so it goes back to waiting)
 const ALLOWED_TRANSITIONS: Record<SituationStatus, ReadonlySet<SituationStatus>> = {
   ACTION: new Set(['WAITING', 'COMPLETED', 'INFORMATIONAL']),
   WAITING: new Set(['ACTION', 'COMPLETED', 'INFORMATIONAL']),
@@ -34,13 +33,10 @@ export function applyTransition(from: SituationStatus, to: SituationStatus): Tra
   return { ok: true, status: to }
 }
 
-/**
- * Decides what a situation's status should become when new evidence about
- * it arrives, given what it already is. This is the seam the flagship
- * "don't duplicate, update" behavior (WAITING refund -> COMPLETED refund)
- * runs through: reconciliation logic calls this instead of blindly
- * overwriting status with whatever the latest classification says.
- */
+// figures out what a situation's status should become when new evidence
+// comes in. this is the whole "don't duplicate, just update" thing (like
+// waiting refund -> completed refund) - reconciliation calls this instead
+// of just blindly overwriting the status
 export function reconcileStatus(
   existing: SituationStatus,
   incoming: SituationStatus

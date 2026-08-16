@@ -24,7 +24,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   }
 }))
 
-/** Called once on startup with the persisted preference from Settings. */
+/** called once on startup with whatever was saved in settings */
 export function initializeTheme(preference: ThemePreference): void {
   applyThemeAttribute(preference)
   useThemeStore.setState({ preference })

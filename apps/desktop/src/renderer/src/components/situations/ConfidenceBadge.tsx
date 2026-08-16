@@ -1,7 +1,7 @@
 import { HelpCircle } from 'lucide-react'
 import styles from './StatusBadge.module.css'
 
-/** Confidence thresholds from PRODUCT_SPEC.md §13 — below 0.85 Clerk shows the item as uncertain rather than presenting it as settled fact. */
+/** below 0.85 confidence clerk shows it as uncertain instead of a settled fact */
 export function ConfidenceBadge({ confidence }: { confidence: number }) {
   if (confidence >= 0.85) return null
   return (

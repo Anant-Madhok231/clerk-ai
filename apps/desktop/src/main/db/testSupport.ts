@@ -14,7 +14,7 @@ export interface ScratchDb {
   cleanup: () => void
 }
 
-/** A freshly migrated SQLite database at a scratch file path, for tests that need real persistence rather than mocks. */
+/** a fresh migrated sqlite db at a scratch path, for tests that need real persistence instead of mocks */
 export function createScratchDb(): ScratchDb {
   const scratchDir = mkdtempSync(join(tmpdir(), 'clerk-db-test-'))
   const dbPath = join(scratchDir, 'clerk.sqlite3')

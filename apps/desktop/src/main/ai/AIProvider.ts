@@ -14,9 +14,9 @@ export const ClassificationResultSchema = z.object({
   currency: z.string().nullable().optional(),
   waitingOn: z.string().nullable().optional(),
   confidence: z.number().min(0).max(1),
-  // Set when this source item resolves/updates an existing situation rather
-  // than starting a new one. Must be one of the candidate ids the provider
-  // was given — the pipeline does not trust an id it didn't offer.
+  // only set this when it's updating an existing situation, not making a
+  // new one. has to be one of the ids we actually gave it, we don't trust
+  // random ids back
   matchedSituationId: z.string().nullable().optional(),
   evidenceSummary: z.string().nullable().optional()
 })
@@ -34,16 +34,16 @@ export interface ClassificationSourceItem {
   sender: string | null
   subject: string | null
   snippet: string | null
-  /** Full extracted message text, when available — classification should prefer this over snippet, which is only a short Gmail-generated preview. */
+  /** full email text when we have it, use this instead of snippet since snippet is just a short preview */
   body?: string | null
-  /** True when the sender matches one of the user's Tracked Senders (exact address or domain) — a preference signal, not a rules engine: increases attention, never fabricates urgency that isn't in the text. */
+  /** true if sender is on the tracked senders list, just bumps attention, doesn't fake urgency */
   isTrackedSender?: boolean
   receivedAt: string
 }
 
 export interface ClassificationInput {
   sourceItem: ClassificationSourceItem
-  /** Situations sharing this source item's thread, found by deterministic matching — the only situations the provider is allowed to resolve against. */
+  /** situations on the same thread, found by matching - only ones the provider is allowed to update */
   candidates: SituationCandidate[]
 }
 

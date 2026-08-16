@@ -6,8 +6,8 @@ import { loadTokens as loadCalendarTokens } from '../integrations/calendar/token
 
 const LAST_CHECKED_KEY = 'sync.lastCheckedAt'
 
-// In-memory only — resets on restart, which is correct: "checking" isn't a
-// fact worth persisting, unlike lastCheckedAt.
+// just in memory, resets on restart which is fine - "checking" isn't
+// something worth saving, unlike lastCheckedAt
 let checking = false
 
 export interface SyncStatus {

@@ -18,10 +18,9 @@ import type { Db } from './db/client'
 
 function loadLocalEnv(): void {
   try {
-    // Not process.loadEnvFile: its native implementation reads straight off
-    // disk and doesn't go through Electron's asar-patched fs, so it silently
-    // fails to find this file once it's packaged inside app.asar. Plain
-    // fs.readFileSync does go through that patch, in dev and packaged alike.
+    // not using process.loadEnvFile here, it reads straight off disk and
+    // skips electron's patched fs, so it just silently fails once packaged
+    // into app.asar. plain fs.readFileSync works fine in both dev and packaged
     const raw = readFileSync(join(app.getAppPath(), '.env.local'), 'utf8')
     for (const line of raw.split('\n')) {
       const match = /^([A-Z_][A-Z0-9_]*)=(.*)$/.exec(line.trim())
@@ -30,7 +29,7 @@ function loadLocalEnv(): void {
       if (key !== undefined && value !== undefined) process.env[key] = value
     }
   } catch {
-    // No .env.local — expected until a Google OAuth client id is provisioned.
+    // no .env.local yet, that's fine until the google oauth id is set up
   }
 }
 
@@ -40,8 +39,8 @@ function resolveAIProvider(db: Db) {
     settings.aiProviderKind === 'openai'
       ? (() => {
           const apiKey = loadOpenAIApiKey(db)
-          // Fall back to Demo Mode rather than constructing a provider that
-          // will fail on first use — Settings surfaces "not configured".
+          // just fall back to demo mode instead of a provider that's gonna
+          // fail the second it's used, settings will show it's not set up
           return apiKey ? { kind: 'openai' as const, apiKey } : { kind: 'demo' as const }
         })()
       : { kind: 'demo' }
@@ -49,8 +48,8 @@ function resolveAIProvider(db: Db) {
 }
 
 function windowIconPath(): string {
-  // Ignored on macOS (the .app bundle icon from build/icon.icns is what's
-  // shown); used for the Windows/Linux taskbar icon.
+  // mac ignores this (uses the .icns bundle icon instead), this is really
+  // just for windows/linux taskbar
   const base = app.isPackaged ? process.resourcesPath : app.getAppPath()
   return join(base, 'build/icons/256x256.png')
 }
@@ -75,7 +74,7 @@ function createWindow(db: Db): BrowserWindow {
     }
   })
 
-  // Every external link/popup opens in the user's real browser, never inside Clerk.
+  // any external link/popup opens in the real browser, never inside clerk itself
   window.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
     return { action: 'deny' }
@@ -87,9 +86,9 @@ function createWindow(db: Db): BrowserWindow {
     }
   })
 
-  // With background monitoring on, closing the window hides Clerk (it keeps
-  // syncing from the tray) rather than quitting — "Quit Clerk" in the tray
-  // menu is the explicit way out.
+  // with background monitoring on, closing the window just hides clerk (it
+  // keeps syncing from the tray) instead of quitting - "quit clerk" in the
+  // tray menu is the actual way to close it
   window.on('close', (event) => {
     if (isQuitting) return
     if (getAppSettings(db).backgroundMonitoringEnabled) {
@@ -120,15 +119,15 @@ app.whenReady().then(() => {
   const calendarAdapter = new CalendarAdapter(db, { clientId: googleClientId, clientSecret: googleClientSecret })
   registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdapter })
 
-  // Self-heals installs that connected a real account before demo-fixture
-  // auto-cleanup existed on the connect handlers themselves.
+  // cleans up old installs that connected a real account before we had
+  // auto-cleanup of demo data on the connect handlers
   if (gmailAdapter.isConnected() || calendarAdapter.isConnected()) {
     deleteDemoSituationData(db)
   }
 
-  // Covers installs that connected Gmail before the 10-day backfill existed
-  // -- runs once, self-terminates via the completion marker, no
-  // disconnect/reconnect required. Fire-and-forget: must not block startup.
+  // catches installs that connected gmail before the 10 day backfill was a
+  // thing - runs once and marks itself done, no need to reconnect. fire
+  // and forget, shouldn't hold up startup
   void runGmailBootstrapIfNeeded({ db, aiProvider, gmailAdapter })
 
   let window = createWindow(db)

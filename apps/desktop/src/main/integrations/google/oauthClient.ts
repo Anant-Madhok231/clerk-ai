@@ -14,11 +14,10 @@ export interface PkcePair {
 }
 
 /**
- * PKCE (RFC 7636) protects the authorization code from interception — the
- * actual security mechanism for a desktop app, since this client secret
- * ships inside every install and can't be kept confidential. Google's token
- * endpoint still requires it as a request parameter for "Desktop app"-type
- * clients even though it isn't treated as secret in this threat model.
+ * PKCE is what actually protects this since the client secret ships inside
+ * every install and isn't really secret. google's token endpoint still
+ * wants the secret sent as a param anyway for desktop app type clients,
+ * even though it's not treated as secret here
  */
 export function generatePkcePair(): PkcePair {
   const codeVerifier = randomBytes(32).toString('base64url')
@@ -115,7 +114,7 @@ export interface RefreshTokenOptions {
   fetchImpl?: typeof fetch
 }
 
-/** Access tokens expire in ~1hr; this exchanges the long-lived refresh token for a new one, used whenever a stored token has expired. */
+/** access tokens die after about an hour, this swaps the refresh token for a fresh one when that happens */
 export async function refreshAccessToken(options: RefreshTokenOptions): Promise<TokenResponse> {
   const fetchImpl = options.fetchImpl ?? fetch
   const body = new URLSearchParams({
@@ -146,7 +145,7 @@ export async function refreshAccessToken(options: RefreshTokenOptions): Promise<
 
   return {
     accessToken: payload.access_token,
-    // Google often omits refresh_token on refresh responses — the original stays valid indefinitely until revoked.
+    // google usually doesn't send a new refresh_token back, the old one just stays valid til it's revoked
     refreshToken: payload.refresh_token,
     expiresIn: payload.expires_in,
     scope: payload.scope,

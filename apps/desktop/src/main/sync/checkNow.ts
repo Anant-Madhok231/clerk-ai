@@ -18,7 +18,7 @@ export interface CheckNowResult {
   results: ProcessResult[]
 }
 
-/** Shared by the manual "Check Inbox Now" IPC handler, the tray menu item, and the background scheduler — one real implementation, not three. */
+/** shared by "check inbox now", the tray menu item, and the background scheduler - one real implementation, not three copies */
 export async function checkGmailNow(deps: CheckNowDependencies): Promise<CheckNowResult> {
   if (!deps.gmailAdapter.isConnected()) return { checked: false, results: [] }
 

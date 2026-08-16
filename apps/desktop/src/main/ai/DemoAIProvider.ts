@@ -15,8 +15,8 @@ const MONTHS: Record<string, string> = {
   december: '12'
 }
 
-// Year is optional -- a lot of real mail says "by Friday, August 21" with no
-// year at all, and the old regex silently dropped every deadline like that.
+// year is optional here, tons of real emails just say "by aug 21" with no
+// year at all and we used to just drop those deadlines completely lol
 const DEADLINE_PATTERN =
   /(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s*(\d{4}))?/i
 const AMOUNT_PATTERN = /\$([\d,]+(?:\.\d{2})?)/
@@ -29,8 +29,8 @@ function extractDeadline(text: string, receivedAt: string): { deadline: string; 
   if (!monthName || !day) return null
   const month = MONTHS[monthName.toLowerCase()]
   if (!month) return null
-  // No stated year -- infer from when the message arrived rather than
-  // discarding a real deadline just because the year was implicit.
+  // no year given, just guess based on when the email showed up instead of
+  // throwing the whole deadline away
   const year = explicitYear ?? String(new Date(receivedAt).getFullYear())
   return { deadline: `${year}-${month}-${day.padStart(2, '0')}`, confidence: explicitYear ? 0.9 : 0.7 }
 }
@@ -46,12 +46,9 @@ const ACTION_PHRASES = ['must be paid', 'please pay', 'complete the', 'complete 
 const WAITING_KEYWORDS = ["we've received", 'we have received', 'will contact you', "we'll follow up", 'no response']
 const STANDALONE_COMPLETED_KEYWORDS = ['has been completed', 'refund of']
 
-// Catches "complete it", "open your dashboard", "confirm your", "click
-// here" -- any sentence that OPENS on one of these verbs -- instead of only
-// the handful of exact multi-word phrases above. Generalizes to action
-// language the exact-phrase list was never going to enumerate (surveys,
-// forms, RSVPs, account verification, scheduling links, etc.) without
-// hardcoding any specific sender or wording.
+// catches stuff like "open your dashboard" or "confirm your spot" - any
+// sentence that starts with one of these words, not just the exact phrases
+// up top. covers way more cases without hardcoding specific senders
 const IMPERATIVE_VERBS = [
   'complete',
   'submit',
@@ -94,32 +91,23 @@ function hasImperativeActionLanguage(text: string): boolean {
   return IMPERATIVE_SENTENCE_PATTERN.test(text)
 }
 
-// Not sentence-initial verbs like the list above -- these are nouns that
-// show up in personal/social correspondence ("sent you a message", "new
-// match") regardless of where they land in the sentence.
+// these can be anywhere in the sentence, not just the start - mostly for
+// dating app / social type notifications
 const ACTION_SIGNAL_WORDS = ['sent you a message', 'new message', 'you have a message', 'new match', 'your match']
 
 function hasActionSignalWord(text: string): boolean {
   return ACTION_SIGNAL_WORDS.some((phrase) => text.includes(phrase))
 }
 
-/**
- * Deterministic, no-model classifier. It substitutes for a real AI call in
- * Demo Mode by pattern-matching the normalized subject/body text a real
- * provider would see — everything else in the pipeline (matching,
- * persistence, reconciliation) runs unmodified against its output. Not a
- * substitute for genuine language understanding: it still works on
- * patterns, not meaning, and will still miss phrasing these rules don't
- * cover.
- */
+// this is the demo classifier, no real AI here, just keyword matching.
+// good enough for demo mode but it's not actually reading/understanding
+// the email, just looking for known phrases so it'll miss weird wording
 export class DemoAIProvider implements AIProvider {
   async classify(input: ClassificationInput): Promise<ClassificationResult> {
     const { sourceItem, candidates } = input
     const bodyText = sourceItem.body?.trim() || sourceItem.snippet?.trim() || ''
-    // A period between subject and body, not just a space, matters here:
-    // the imperative-sentence detector below treats sentence-initial
-    // position as the signal, so without it "Open your dashboard..." right
-    // after a subject line would never look sentence-initial.
+    // needs a full stop here not just a space, otherwise the "starts with
+    // a command word" check below won't catch stuff right after the subject
     const text = `${sourceItem.subject ?? ''}. ${bodyText}`.toLowerCase()
     const title = sourceItem.subject?.trim() || 'Untitled item'
     const summary = sourceItem.snippet?.trim() || title
@@ -194,10 +182,9 @@ export class DemoAIProvider implements AIProvider {
 
     return {
       status: 'INFORMATIONAL',
-      // Tracked Senders doesn't invent urgency that isn't in the text --
-      // it means "keep this more visible than an ordinary informational
-      // item", not "treat it as an action". A holiday greeting from a
-      // tracked recruiter stays INFORMATIONAL either way.
+      // tracked senders just bumps visibility, doesn't turn it into an
+      // action. a holiday email from a recruiter you're tracking is still
+      // just informational
       priority: sourceItem.isTrackedSender ? 'MEDIUM' : 'LOW',
       title,
       summary,

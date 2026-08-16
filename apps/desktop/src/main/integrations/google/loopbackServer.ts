@@ -7,17 +7,14 @@ export interface LoopbackResult {
 
 export interface LoopbackServerHandle {
   redirectUri: string
-  /** Resolves once Google redirects back with a code matching this state, rejects on a state mismatch or an error param. */
+  /** resolves once google redirects back with a matching code, rejects if state doesn't match or there's an error */
   waitForCode: (state: string) => Promise<LoopbackResult>
   close: () => Promise<void>
 }
 
-/**
- * Starts an ephemeral HTTP server on 127.0.0.1 to catch Google's OAuth
- * redirect — desktop apps can't register a fixed https redirect URI, so
- * the OS-assigned loopback port + a one-shot local server is the standard
- * pattern.
- */
+// spins up a temp local server to catch google's oauth redirect. desktop
+// apps can't register a fixed https redirect url so this is just the
+// normal way to do it
 export function startLoopbackServer(): Promise<LoopbackServerHandle> {
   return new Promise((resolve, reject) => {
     let resolveCode: ((result: LoopbackResult) => void) | null = null

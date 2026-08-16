@@ -19,11 +19,10 @@ export function detectDocumentType(fileName: string): SupportedDocumentType | nu
 const MAX_EXTRACTED_CHARS = 20_000
 
 /**
- * Local extraction for PDF/TXT. Images have no local text to extract — they
- * would need a multimodal-capable provider to interpret, which is only
- * OpenAIProvider today and untestable without a configured API key; image
- * imports are still ingested (and classifiable on filename/context) but
- * without extracted body text.
+ * pulls text from pdf/txt locally. images don't have text to pull out,
+ * they'd need an ai that can actually see images, which we only sort of
+ * support and can't test without an api key. images still get imported
+ * fine, just without extracted text
  */
 export async function extractText(filePath: string, type: SupportedDocumentType): Promise<string | null> {
   if (type === 'txt') {

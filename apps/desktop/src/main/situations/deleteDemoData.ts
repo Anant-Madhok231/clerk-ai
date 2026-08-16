@@ -3,10 +3,9 @@ import type { Db } from '../db/client'
 import { situation, situationEvent, situationSource, sourceItem } from '../db/schema'
 
 /**
- * Removes situations that originated from "Load Demo Data" fixtures, leaving
- * anything from a real source untouched. Called automatically the moment
- * Gmail or Calendar actually connects, so leftover fixture data doesn't sit
- * mixed in with real synced situations.
+ * clears out situations that came from "load demo data" fixtures, leaves
+ * real stuff alone. runs automatically the second gmail or calendar
+ * connects so demo junk doesn't sit mixed in with your real data
  */
 export function deleteDemoSituationData(db: Db): void {
   const demoSituationIds = db

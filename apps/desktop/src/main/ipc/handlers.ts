@@ -90,10 +90,9 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
     deleteDemoSituationData(db)
     broadcastSituationsChanged()
     broadcastSyncStatusChanged()
-    // Fire-and-forget: the 10-day backfill can take a while on a real
-    // inbox, and the renderer shouldn't wait on it to know Gmail connected.
-    // syncStatusChanged/situationsChanged broadcasts (inside the bootstrap
-    // itself) update the UI as results land.
+    // fire and forget - the 10 day backfill can take a while on a real
+    // inbox and the ui shouldn't have to wait for it to know gmail's
+    // connected. it broadcasts updates as results come in anyway
     void runGmailBootstrapIfNeeded({ db, aiProvider, gmailAdapter })
     return { connected: gmailAdapter.isConnected() }
   })

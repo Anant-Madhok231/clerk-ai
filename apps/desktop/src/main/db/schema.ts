@@ -19,7 +19,7 @@ export const sourceItem = sqliteTable(
     updatedAt: text('updated_at').notNull()
   },
   (table) => [
-    // Dedupes re-ingestion of the same Gmail message / imported file.
+    // stops the same gmail message / imported file getting added twice
     uniqueIndex('source_item_provider_id_idx').on(table.provider, table.providerId),
     index('source_item_thread_id_idx').on(table.threadId)
   ]

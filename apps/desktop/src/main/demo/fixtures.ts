@@ -1,13 +1,11 @@
 import type { IncomingSourceItem } from '../pipeline/processSourceItem'
 
 /**
- * Demo Mode's fake inbox. Every fixture is a plain incoming source item —
- * the same shape a real Gmail message maps to — so it runs through the
- * real ingestion/matching/classification/reconciliation pipeline rather
- * than being a pre-built Situation injected into the UI. The Amazon refund
- * pair is deliberately two separate messages sharing one thread id: the
- * WAITING -> COMPLETED transition it produces comes from the real matcher
- * joining them, not from hardcoding the outcome.
+ * demo mode's fake inbox. each fixture is just a plain incoming item, same
+ * shape as a real gmail message, so it runs through the real pipeline
+ * instead of being a fake situation shoved into the ui. the amazon refund
+ * pair is two separate messages on one thread on purpose - the waiting ->
+ * completed change comes from the real matcher joining them, not faked
  */
 export const DEMO_FIXTURES: IncomingSourceItem[] = [
   {

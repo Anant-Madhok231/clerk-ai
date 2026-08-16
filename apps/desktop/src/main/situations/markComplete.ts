@@ -7,7 +7,7 @@ import { situation, situationEvent } from '../db/schema'
 export class InvalidTransitionError extends Error {}
 export class SituationNotFoundError extends Error {}
 
-/** The user's own "Mark Complete" override — goes through the same state-machine guard as automatic reconciliation, so a COMPLETED/INFORMATIONAL situation can't be re-flipped by mistake. */
+/** the "mark complete" button goes through the same state machine checks as auto reconciliation, so a finished situation can't accidentally get flipped back */
 export function markSituationComplete(db: Db, situationId: string): void {
   const row = db.select().from(situation).where(eq(situation.id, situationId)).get()
   if (!row) throw new SituationNotFoundError(`Situation ${situationId} not found.`)

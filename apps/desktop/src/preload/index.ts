@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import { IPC_CHANNELS, type ClerkApi } from '@shared/ipc-channels'
 
-// Narrow, typed surface only — no raw ipcRenderer, fs, or process is ever
-// exposed to the renderer.
+// keeping this narrow and typed, never exposing raw ipcRenderer/fs/process
+// to the renderer
 const clerkApi: ClerkApi = {
   loadDemoData: () => ipcRenderer.invoke(IPC_CHANNELS.loadDemoData),
   listSituations: () => ipcRenderer.invoke(IPC_CHANNELS.listSituations),
@@ -59,9 +59,9 @@ const clerkApi: ClerkApi = {
 
 contextBridge.exposeInMainWorld('clerk', clerkApi)
 
-// Separate from clerkApi (ClerkApi is the IPC contract shared with tests);
-// this is a direct webUtils passthrough with no main-process round trip,
-// needed because dropped File objects no longer expose .path directly.
+// separate from clerkApi since this is just a direct webUtils passthrough,
+// no round trip to main needed - dropped files don't expose .path directly
+// anymore so we need this
 contextBridge.exposeInMainWorld('clerkFiles', {
   getPathForFile: (file: File): string => webUtils.getPathForFile(file)
 })

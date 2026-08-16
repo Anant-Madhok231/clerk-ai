@@ -13,7 +13,7 @@ export interface SchedulerDependencies {
   gmailAdapter: GmailAdapter
 }
 
-/** Re-reads the interval from settings on every tick, so a Settings change takes effect on the next cycle without an app restart. */
+/** re-checks the interval from settings every tick so changing it in settings works right away, no restart needed */
 export function startBackgroundScheduler(deps: SchedulerDependencies): void {
   stopBackgroundScheduler()
   scheduleNext(deps)
@@ -39,8 +39,8 @@ export async function runTick(deps: SchedulerDependencies): Promise<void> {
   try {
     await checkGmailNow(deps)
   } catch {
-    // Background failures shouldn't crash the app — "Check Inbox Now"
-    // surfaces the same error to the user on demand instead.
+    // don't crash the app over a background failure, "check inbox now"
+    // will show the same error if the user triggers it manually
   }
 }
 

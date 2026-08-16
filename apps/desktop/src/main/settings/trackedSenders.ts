@@ -7,7 +7,7 @@ import { settings } from '../db/schema'
 export const TrackedSenderSchema = z.object({
   id: z.string(),
   matchType: z.enum(['EXACT_EMAIL', 'DOMAIN']),
-  /** Lowercased email (EXACT_EMAIL) or bare domain with no leading '@' (DOMAIN). */
+  /** lowercase email for EXACT_EMAIL, or just the domain with no @ for DOMAIN */
   value: z.string(),
   displayName: z.string()
 })
@@ -30,7 +30,7 @@ function saveTrackedSenders(db: Db, list: TrackedSender[]): void {
     .run()
 }
 
-/** `matchType: 'EXACT_EMAIL'` expects a full address; `'DOMAIN'` expects a bare domain with no leading `@` (e.g. "company.com", not "@company.com" and not "fakecompany.com" matching "company.com"). */
+/** EXACT_EMAIL wants a full address, DOMAIN wants just the domain no @ (like "company.com" not "@company.com", and "fakecompany.com" shouldn't match "company.com") */
 export function addTrackedSender(
   db: Db,
   input: { matchType: 'EXACT_EMAIL' | 'DOMAIN'; value: string; displayName: string }
@@ -52,7 +52,7 @@ export function removeTrackedSender(db: Db, id: string): TrackedSender[] {
   return list
 }
 
-/** Extracts the bare email address from a "Display Name <addr@host>" or plain "addr@host" sender string. */
+/** pulls the plain email out of a "Name <addr@host>" or just "addr@host" string */
 function extractEmailAddress(sender: string): string | null {
   const match = /<([^>]+)>/.exec(sender) ?? [null, sender]
   const candidate = match[1]?.trim().toLowerCase()

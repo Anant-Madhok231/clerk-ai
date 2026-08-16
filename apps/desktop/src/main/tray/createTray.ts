@@ -15,9 +15,8 @@ export interface TrayDependencies {
 let tray: Tray | null = null
 
 function trayIconPath(): string {
-  // In a packaged build, electron-builder copies apps/desktop/resources/**
-  // into process.resourcesPath via the extraResources config in
-  // electron-builder.yml. In dev, app.getAppPath() is apps/desktop itself.
+  // in a packaged build, electron-builder copies the resources folder over
+  // via extraResources. in dev it's just the apps/desktop folder
   const base = app.isPackaged ? process.resourcesPath : app.getAppPath()
   return join(base, 'resources/tray/trayIconTemplate.png')
 }

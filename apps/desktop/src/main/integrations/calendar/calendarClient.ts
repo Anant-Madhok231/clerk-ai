@@ -2,7 +2,7 @@ const CALENDAR_EVENTS_URL = 'https://www.googleapis.com/calendar/v3/calendars/pr
 
 export interface CreateEventInput {
   title: string
-  /** All-day event date, YYYY-MM-DD. Clerk's deadlines are dates, not times. */
+  /** all-day event date, YYYY-MM-DD - clerk deals in dates not times */
   date: string
   description?: string
 }
@@ -15,7 +15,7 @@ export interface CreatedEvent {
 export interface UpcomingEvent {
   id: string
   title: string
-  /** ISO datetime, or ISO date (YYYY-MM-DD) for all-day events. */
+  /** iso datetime, or just iso date for all-day events */
   start: string
   isAllDay: boolean
 }

@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 /**
- * Payload validation schemas for the main process. Kept separate from
- * ipc-channels.ts because it pulls in zod as a runtime dependency, which
- * the sandboxed preload script cannot require().
+ * payload validation schemas for the main process. separate from
+ * ipc-channels.ts because this pulls in zod, which the sandboxed preload
+ * script can't require()
  */
 export { IPC_CHANNELS, type ClerkApi } from './ipc-channels'
 

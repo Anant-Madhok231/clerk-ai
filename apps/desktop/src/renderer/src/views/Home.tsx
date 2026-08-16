@@ -14,7 +14,7 @@ function greeting(): string {
   return 'Good evening.'
 }
 
-/** "Today, 3:00 PM" / "Tomorrow" (all-day) / "Wed, Aug 19, 3:00 PM" — never bare ISO. */
+/** "today, 3:00pm" / "tomorrow" (all-day) / "wed, aug 19, 3:00pm" - never a raw iso string */
 function formatEventStart(start: string, isAllDay: boolean): string {
   const date = new Date(isAllDay ? `${start}T00:00:00` : start)
   const now = new Date()

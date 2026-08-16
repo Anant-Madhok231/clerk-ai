@@ -37,7 +37,7 @@ function Shell() {
     } else if (settings.onboardingCompleted && view === 'onboarding') {
       goTo('home')
     }
-    // Only re-run when the persisted settings load/change, not on every nav change.
+    // only rerun when settings actually load/change, not on every nav change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings])
 

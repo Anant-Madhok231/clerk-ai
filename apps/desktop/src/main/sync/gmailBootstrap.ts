@@ -29,13 +29,10 @@ export interface GmailBootstrapDependencies {
 }
 
 /**
- * Runs the one-time 10-day backfill if it hasn't run yet for this install,
- * whether that's because Gmail was just connected for the first time or
- * because this is an existing install that connected before bootstrap
- * existed. Safe to call on every app startup and after every connect() --
- * it's a no-op once the completion marker is set, and even a legitimate
- * re-run can't create duplicates (processSourceItem's provider/providerId
- * dedupe already guarantees that).
+ * runs the one-time 10 day backfill if it hasn't happened yet, whether
+ * that's a fresh gmail connect or an old install that connected before
+ * this existed. safe to call every startup and after every connect, it's
+ * a no-op once done and dedupe means it can't double anything up anyway
  */
 export async function runGmailBootstrapIfNeeded(deps: GmailBootstrapDependencies): Promise<void> {
   if (!deps.gmailAdapter.isConnected()) return

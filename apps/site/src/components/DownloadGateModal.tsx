@@ -22,8 +22,8 @@ async function submitBetaAccessRequest(email: string, platformLabel: string, cle
   const formData = new FormData()
   formData.append('_subject', 'New Clerk Beta User')
   formData.append('_template', 'table')
-  // AJAX submissions can't render an interactive captcha challenge, so this
-  // is disabled per FormSubmit's own guidance for fetch-based integrations.
+  // captcha's off since fetch requests can't show an interactive challenge
+  // anyway, this is what formsubmit recommends for ajax stuff
   formData.append('_captcha', 'false')
   formData.append('Email', email)
   formData.append('Platform', platformLabel)
@@ -42,7 +42,7 @@ async function submitBetaAccessRequest(email: string, platformLabel: string, cle
     const data = (await response.json()) as { success?: string | boolean }
     return data?.success === 'true' || data?.success === true
   } catch {
-    // A 2xx status without a parseable body is still a reasonable success signal.
+    // a 2xx with no parseable body is still probably fine
     return true
   }
 }

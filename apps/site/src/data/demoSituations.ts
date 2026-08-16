@@ -1,6 +1,6 @@
-// Static, seeded — mirrors the outcomes Clerk's real demo pipeline produces
-// (apps/desktop/src/main/demo/fixtures.ts) from the same seven fixtures, not
-// invented numbers. No live data, no credentials, nothing to connect.
+// static seeded data, mirrors what clerk's real demo pipeline actually
+// produces from the same fixtures, not made up numbers. no live data or
+// credentials, nothing to connect
 
 export type Status = 'ACTION' | 'WAITING' | 'COMPLETED' | 'INFORMATIONAL'
 

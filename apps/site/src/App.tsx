@@ -8,12 +8,12 @@ import styles from './App.module.css'
 const REPO_URL = 'https://github.com/Anant-Madhok231/clerk-ai'
 const RELEASES_URL = 'https://github.com/Anant-Madhok231/clerk-ai/releases'
 
-// Bump alongside the desktop app's own version (apps/desktop/package.json) —
-// used only for the beta-access-request email sent to the admin.
+// bump this whenever the desktop app version bumps too, only used in the
+// beta access request email
 const CLERK_VERSION = '1.0.2'
 
-// Filenames are stable across versions (see electron-builder.yml), so these
-// always resolve to the newest published release without editing this file.
+// filenames stay the same across versions so these always point at the
+// newest release without editing this file
 const DOWNLOAD_MAC_ARM64 = `${RELEASES_URL}/latest/download/Clerk-macOS-arm64.dmg`
 const DOWNLOAD_MAC_X64 = `${RELEASES_URL}/latest/download/Clerk-macOS-x64.dmg`
 const DOWNLOAD_WINDOWS = `${RELEASES_URL}/latest/download/Clerk-Setup.exe`
@@ -30,8 +30,8 @@ export function App() {
   const [gateTarget, setGateTarget] = useState<DownloadTarget | null>(null)
 
   function handleDownloadClick(target: DownloadTarget) {
-    // Once a visitor has submitted a beta-access request this browser
-    // session, don't ask again — just start the next download directly.
+    // once someone's submitted a request this session, don't ask again,
+    // just start the next download
     if (sessionStorage.getItem(BETA_EMAIL_STORAGE_KEY)) {
       window.location.href = target.url
       return

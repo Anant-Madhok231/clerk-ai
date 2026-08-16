@@ -10,24 +10,24 @@ export function registerMainWindow(window: BrowserWindow): void {
   })
 }
 
-/** The tray menu's counts/labels go stale without this — registered once at startup alongside createTray(). */
+/** without this the tray menu's counts go stale, registered once at startup with createTray() */
 export function registerChangeListener(callback: () => void): void {
   onChangeExtra = callback
 }
 
-/** Fired after any DB mutation that could change what Home/Actions/Waiting/History/detail views show — the one push signal every view invalidates on. */
+/** fires after any db change that could affect what the views show, this is the one signal every screen listens for */
 export function broadcastSituationsChanged(): void {
   mainWindow?.webContents.send('clerk:situationsChanged')
   onChangeExtra?.()
 }
 
-/** Fired when Gmail/Calendar connection or last-checked state changes. */
+/** fires when gmail/calendar connection or last-checked state changes */
 export function broadcastSyncStatusChanged(): void {
   mainWindow?.webContents.send('clerk:syncStatusChanged')
   onChangeExtra?.()
 }
 
-/** Fired when the tray's "Settings" item is clicked — brings the window forward and switches its view in one step. */
+/** fires when "settings" is clicked in the tray, brings the window forward and switches the view in one go */
 export function broadcastNavigateToSettings(): void {
   mainWindow?.webContents.send('clerk:navigateToSettings')
 }

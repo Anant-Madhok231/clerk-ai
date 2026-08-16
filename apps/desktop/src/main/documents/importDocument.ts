@@ -13,9 +13,9 @@ export class UnsupportedFileTypeError extends Error {}
 export class FileTooLargeError extends Error {}
 
 /**
- * Imported files go through the exact same processSourceItem pipeline as
- * Gmail and Demo Mode — a document is just another SourceItem, deduped by
- * its content hash instead of a provider message id.
+ * imported files go through the same pipeline as gmail and demo mode - a
+ * document's just another source item, deduped by its content hash instead
+ * of a message id
  */
 export async function importDocument(
   db: Db,

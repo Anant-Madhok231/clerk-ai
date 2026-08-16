@@ -9,7 +9,7 @@ export interface CalendarAdapterOptions {
   clientSecret: string
 }
 
-/** Facade over Google Calendar OAuth + event creation, mirroring GmailAdapter's shape. */
+/** wraps google calendar oauth + event creation, same shape as GmailAdapter */
 export class CalendarAdapter {
   constructor(
     private readonly db: Db,
@@ -34,7 +34,7 @@ export class CalendarAdapter {
     clearTokens(this.db)
   }
 
-  /** Loads stored tokens, transparently refreshing an expired access token before returning it. */
+  /** grabs stored tokens, refreshing the access token first if it's expired */
   private async getValidAccessToken(): Promise<string> {
     const tokens = loadTokens(this.db)
     if (!tokens) throw new Error('Google Calendar is not connected.')

@@ -13,7 +13,7 @@ export interface AddToCalendarResult {
   htmlLink: string
 }
 
-/** Calendar is write-gated: this only runs after the user has confirmed the exact event in a dialog — never automatically. */
+/** calendar writes are gated behind confirmation, this only runs after the user confirms the event in a dialog, never automatic */
 export async function addSituationToCalendar(
   db: Db,
   calendarAdapter: CalendarAdapter,

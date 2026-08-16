@@ -15,7 +15,7 @@ function requireSecureStorage(): void {
   }
 }
 
-/** Encrypts `value` via safeStorage and stores it under `key` in the settings table — the shared mechanism behind Gmail tokens and the OpenAI API key. */
+/** encrypts value with safeStorage and stores it under key in settings, same mechanism behind gmail tokens and the openai key */
 export function saveSecureValue(db: Db, key: string, value: unknown): void {
   requireSecureStorage()
   const encrypted = safeStorage.encryptString(JSON.stringify(value)).toString('base64')
@@ -38,7 +38,7 @@ export function clearSecureValue(db: Db, key: string): void {
   db.delete(settings).where(eq(settings.key, key)).run()
 }
 
-/** Binds save/load/clear to one settings key — the pattern behind Gmail tokens, Calendar tokens, and the OpenAI API key, which otherwise all reimplement the same three-line wrapper. */
+/** binds save/load/clear to one key, saves gmail/calendar tokens and the openai key from all rewriting the same tiny wrapper */
 export function createSecureRecordStore<T>(key: string) {
   return {
     save: (db: Db, value: T): void => saveSecureValue(db, key, value),

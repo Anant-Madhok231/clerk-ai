@@ -19,11 +19,11 @@ export interface GoogleOAuthConnectionOptions {
   clientId: string
   clientSecret: string
   scope: string
-  /** Used only in the error message when clientId is missing, e.g. "Gmail" or "Google Calendar". */
+  /** just used in the error message when clientId's missing, like "Gmail" or "Google Calendar" */
   serviceName: string
 }
 
-/** The desktop OAuth dance shared by every Google integration: PKCE -> system-browser consent -> loopback redirect -> token exchange. Gmail and Calendar differ only in scope and where the resulting tokens get stored. */
+/** the oauth flow every google integration shares: PKCE -> browser consent -> loopback redirect -> token exchange. gmail and calendar just differ in scope and where tokens end up */
 export async function performGoogleOAuthConnection(
   options: GoogleOAuthConnectionOptions
 ): Promise<StoredGoogleTokens> {
@@ -68,10 +68,10 @@ export async function performGoogleOAuthConnection(
 }
 
 /**
- * Returns a definitely-valid access token, transparently refreshing (and
- * persisting the refreshed tokens via saveTokens) if the stored one has
- * expired or is about to within the next minute. Every Gmail/Calendar API
- * call goes through this rather than reading tokens.accessToken directly.
+ * gives back a token that's actually valid, refreshing it (and saving the
+ * new one) if it's expired or about to expire in the next minute. every
+ * gmail/calendar api call should go through this instead of grabbing
+ * tokens.accessToken directly
  */
 export async function ensureFreshAccessToken(
   tokens: StoredGoogleTokens,
