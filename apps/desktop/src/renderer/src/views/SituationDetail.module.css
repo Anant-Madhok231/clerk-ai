@@ -36,6 +36,26 @@
   margin-bottom: var(--space-4);
 }
 
+.starToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.starToggle:hover {
+  color: var(--color-uncertain);
+}
+
+.starActive {
+  color: var(--color-uncertain);
+}
+
 .metaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));

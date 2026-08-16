@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft,
+  Ban,
   Calendar,
   CheckCircle2,
   FileText,
@@ -10,6 +11,7 @@ import {
   MailX,
   RotateCcw,
   Sparkles,
+  Star,
   type LucideIcon
 } from 'lucide-react'
 import type { SituationSourceSummary } from '@shared/ipc-channels'
@@ -55,7 +57,6 @@ export function SituationDetail({ situationId }: { situationId: string }) {
   const queryClient = useQueryClient()
   const showToast = useToastStore((state) => state.show)
   const [confirmingCalendar, setConfirmingCalendar] = useState(false)
-  const [confirmingDismiss, setConfirmingDismiss] = useState(false)
 
   const { data: detail, isLoading } = useQuery({
     queryKey: queryKeys.situationDetail(situationId),
@@ -88,22 +89,30 @@ export function SituationDetail({ situationId }: { situationId: string }) {
 
   const dismiss = useMutation({
     mutationFn: (learnSimilar: boolean) => window.clerk.dismissSituation(situationId, learnSimilar),
-    onSuccess: () => {
-      setConfirmingDismiss(false)
-      showToast('Moved to Low.', 'success')
+    onSuccess: (_data, learnSimilar) => {
+      showToast(learnSimilar ? 'Moved to Low-Like.' : 'Moved to Low-Rate.', 'success')
       queryClient.invalidateQueries({ queryKey: queryKeys.situations })
       queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
     },
-    onError: (error: Error) => {
-      setConfirmingDismiss(false)
-      showToast(error.message, 'error')
-    }
+    onError: (error: Error) => showToast(error.message, 'error')
   })
 
   const restore = useMutation({
     mutationFn: () => window.clerk.restoreSituation(situationId),
     onSuccess: () => {
       showToast('Restored.', 'success')
+      queryClient.invalidateQueries({ queryKey: queryKeys.situations })
+      queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
+    },
+    onError: (error: Error) => showToast(error.message, 'error')
+  })
+
+  const toggleImportant = useMutation({
+    mutationFn: () =>
+      detail?.important
+        ? window.clerk.unmarkSituationImportant(situationId)
+        : window.clerk.markSituationImportant(situationId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.situations })
       queryClient.invalidateQueries({ queryKey: queryKeys.situationDetail(situationId) })
     },
@@ -130,7 +139,18 @@ export function SituationDetail({ situationId }: { situationId: string }) {
         <StatusBadge status={detail.status} />
         <ConfidenceBadge confidence={detail.confidence} />
       </div>
-      <h1 className={styles.title}>{detail.title}</h1>
+      <div className={styles.headerRow}>
+        <h1 className={styles.title}>{detail.title}</h1>
+        <button
+          type="button"
+          className={styles.starToggle}
+          title={detail.important ? 'Unmark important' : 'Mark important'}
+          disabled={toggleImportant.isPending}
+          onClick={() => toggleImportant.mutate()}
+        >
+          <Star size={22} fill={detail.important ? 'currentColor' : 'none'} className={detail.important ? styles.starActive : ''} />
+        </button>
+      </div>
 
       <div className={styles.metaGrid}>
         {detail.amount !== null && (
@@ -192,9 +212,14 @@ export function SituationDetail({ situationId }: { situationId: string }) {
             <RotateCcw size={14} /> {restore.isPending ? 'Restoring…' : 'Not Spam, Restore'}
           </Button>
         ) : (
-          <Button variant="secondary" onClick={() => setConfirmingDismiss(true)}>
-            <MailX size={14} /> Not Needed / Spam
-          </Button>
+          <>
+            <Button variant="secondary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(false)}>
+              <MailX size={14} /> Dismiss
+            </Button>
+            <Button variant="secondary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(true)}>
+              <Ban size={14} /> Dismiss + Hide Similar
+            </Button>
+          </>
         )}
       </div>
 
@@ -234,27 +259,6 @@ export function SituationDetail({ situationId }: { situationId: string }) {
         </Dialog>
       )}
 
-      {confirmingDismiss && (
-        <Dialog
-          title="Not needed / spam"
-          onClose={() => setConfirmingDismiss(false)}
-          actions={
-            <>
-              <Button variant="ghost" onClick={() => setConfirmingDismiss(false)}>
-                Cancel
-              </Button>
-              <Button variant="secondary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(false)}>
-                Just this one
-              </Button>
-              <Button variant="primary" disabled={dismiss.isPending} onClick={() => dismiss.mutate(true)}>
-                Also hide similar mail
-              </Button>
-            </>
-          }
-        >
-          Just hide this one in Low-Rate, or also file mail that looks similar to it under Low-Like from now on?
-        </Dialog>
-      )}
     </div>
   )
 }

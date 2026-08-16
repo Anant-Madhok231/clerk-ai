@@ -43,6 +43,7 @@ export const situation = sqliteTable('situation', {
   calendarEventId: text('calendar_event_id'),
   dismissed: integer('dismissed', { mode: 'boolean' }).notNull().default(false),
   dismissalReason: text('dismissal_reason'), // 'user' | 'auto-similar' | null
+  important: integer('important', { mode: 'boolean' }).notNull().default(false),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
   resolvedAt: text('resolved_at')

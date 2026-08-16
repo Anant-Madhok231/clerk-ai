@@ -10,6 +10,8 @@ export const IPC_CHANNELS = {
   markSituationComplete: 'situation:markComplete',
   dismissSituation: 'situation:dismiss',
   restoreSituation: 'situation:restore',
+  markSituationImportant: 'situation:markImportant',
+  unmarkSituationImportant: 'situation:unmarkImportant',
 
   gmailConnect: 'gmail:connect',
   gmailDisconnect: 'gmail:disconnect',
@@ -62,6 +64,7 @@ export interface SituationListItem {
   calendarEventId: string | null
   dismissed: boolean
   dismissalReason: DismissalReasonValue
+  important: boolean
   updatedAt: string
 }
 
@@ -189,6 +192,8 @@ export interface ClerkApi {
   markSituationComplete(situationId: string): Promise<void>
   dismissSituation(situationId: string, learnSimilar: boolean): Promise<void>
   restoreSituation(situationId: string): Promise<void>
+  markSituationImportant(situationId: string): Promise<void>
+  unmarkSituationImportant(situationId: string): Promise<void>
 
   gmailConnect(): Promise<GmailStatus>
   gmailDisconnect(): Promise<GmailStatus>

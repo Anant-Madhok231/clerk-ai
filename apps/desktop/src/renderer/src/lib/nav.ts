@@ -8,6 +8,7 @@ export type ViewName =
   | 'documents'
   | 'history'
   | 'low'
+  | 'important'
   | 'settings'
   | 'situationDetail'
 

@@ -14,6 +14,7 @@ import { Waiting } from './views/Waiting'
 import { Documents } from './views/Documents'
 import { History } from './views/History'
 import { Low } from './views/Low'
+import { Important } from './views/Important'
 import { Settings } from './views/Settings'
 import { SituationDetail } from './views/SituationDetail'
 
@@ -64,6 +65,7 @@ function Shell() {
         {view === 'documents' && <Documents />}
         {view === 'history' && <History />}
         {view === 'low' && <Low />}
+        {view === 'important' && <Important />}
         {view === 'settings' && <Settings />}
         {view === 'situationDetail' && selectedSituationId && (
           <SituationDetail situationId={selectedSituationId} />

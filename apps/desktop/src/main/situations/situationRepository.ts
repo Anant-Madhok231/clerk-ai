@@ -23,6 +23,7 @@ function toListItem(row: typeof situation.$inferSelect): SituationListItem {
     calendarEventId: row.calendarEventId,
     dismissed: row.dismissed,
     dismissalReason: row.dismissalReason as SituationListItem['dismissalReason'],
+    important: row.important,
     updatedAt: row.updatedAt
   }
 }

@@ -1,4 +1,4 @@
-import { Clock, FileText, History, Home, ListChecks, MailX, Settings, type LucideIcon } from 'lucide-react'
+import { Clock, FileText, History, Home, ListChecks, MailX, Settings, Star, type LucideIcon } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavStore, type ViewName } from '../../lib/nav'
 import { queryKeys } from '../../lib/queryClient'
@@ -9,11 +9,12 @@ interface NavEntry {
   view: ViewName
   label: string
   icon: LucideIcon
-  count?: (data: { action: number; waiting: number; low: number }) => number | undefined
+  count?: (data: { action: number; waiting: number; low: number; important: number }) => number | undefined
 }
 
 const NAV_ENTRIES: NavEntry[] = [
   { view: 'home', label: 'Home', icon: Home },
+  { view: 'important', label: 'Important', icon: Star, count: (c) => c.important || undefined },
   { view: 'actions', label: 'Actions', icon: ListChecks, count: (c) => c.action || undefined },
   { view: 'waiting', label: 'Waiting', icon: Clock, count: (c) => c.waiting || undefined },
   { view: 'documents', label: 'Documents', icon: FileText },
@@ -40,7 +41,8 @@ export function Sidebar() {
   const counts = {
     action: situations?.filter((s) => s.status === 'ACTION' && !s.dismissed).length ?? 0,
     waiting: situations?.filter((s) => s.status === 'WAITING' && !s.dismissed).length ?? 0,
-    low: situations?.filter((s) => s.dismissed).length ?? 0
+    low: situations?.filter((s) => s.dismissed).length ?? 0,
+    important: situations?.filter((s) => s.important && !s.dismissed).length ?? 0
   }
 
   const syncLabel = !syncStatus

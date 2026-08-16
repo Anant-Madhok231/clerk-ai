@@ -15,6 +15,10 @@ const clerkApi: ClerkApi = {
   dismissSituation: (situationId, learnSimilar) =>
     ipcRenderer.invoke(IPC_CHANNELS.dismissSituation, { situationId, learnSimilar }),
   restoreSituation: (situationId) => ipcRenderer.invoke(IPC_CHANNELS.restoreSituation, { situationId }),
+  markSituationImportant: (situationId) =>
+    ipcRenderer.invoke(IPC_CHANNELS.markSituationImportant, { situationId }),
+  unmarkSituationImportant: (situationId) =>
+    ipcRenderer.invoke(IPC_CHANNELS.unmarkSituationImportant, { situationId }),
 
   gmailConnect: () => ipcRenderer.invoke(IPC_CHANNELS.gmailConnect),
   gmailDisconnect: () => ipcRenderer.invoke(IPC_CHANNELS.gmailDisconnect),

@@ -1,0 +1,1 @@
+ALTER TABLE `situation` ADD `important` integer DEFAULT false NOT NULL;

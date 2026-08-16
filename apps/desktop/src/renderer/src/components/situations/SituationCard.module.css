@@ -108,3 +108,7 @@
   opacity: 0.5;
   cursor: default;
 }
+
+.starActive {
+  color: var(--color-uncertain);
+}

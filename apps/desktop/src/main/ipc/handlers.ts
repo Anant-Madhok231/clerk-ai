@@ -35,6 +35,7 @@ import { addSituationToCalendar } from '../situations/addToCalendar'
 import { markSituationComplete } from '../situations/markComplete'
 import { dismissSituation } from '../situations/dismissSituation'
 import { restoreSituation } from '../situations/restoreSituation'
+import { markSituationImportant, unmarkSituationImportant } from '../situations/markImportant'
 import { deleteAllSituationData } from '../situations/deleteAllData'
 import { deleteDemoSituationData } from '../situations/deleteDemoData'
 import { addTrackedSender, getTrackedSenders, removeTrackedSender } from '../settings/trackedSenders'
@@ -96,6 +97,18 @@ export function registerIpcHandlers({ db, aiProvider, gmailAdapter, calendarAdap
   ipcMain.handle(IPC_CHANNELS.restoreSituation, (_event, payload: unknown): void => {
     const { situationId } = SituationIdRequestSchema.parse(payload)
     restoreSituation(db, situationId)
+    broadcastSituationsChanged()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.markSituationImportant, (_event, payload: unknown): void => {
+    const { situationId } = SituationIdRequestSchema.parse(payload)
+    markSituationImportant(db, situationId)
+    broadcastSituationsChanged()
+  })
+
+  ipcMain.handle(IPC_CHANNELS.unmarkSituationImportant, (_event, payload: unknown): void => {
+    const { situationId } = SituationIdRequestSchema.parse(payload)
+    unmarkSituationImportant(db, situationId)
     broadcastSituationsChanged()
   })
 
