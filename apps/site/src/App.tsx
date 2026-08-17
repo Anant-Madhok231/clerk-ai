@@ -208,6 +208,10 @@ export function App() {
             Not sure which Mac you have? Apple menu → About This Mac. &quot;Chip&quot; means Apple Silicon;
             &quot;Processor&quot; means Intel.
           </p>
+          <p className={styles.demoHint}>
+            After submitting your email below, your browser can take 30–45 seconds to actually start the download —
+            that's normal, please wait.
+          </p>
         </div>
       </section>
 
