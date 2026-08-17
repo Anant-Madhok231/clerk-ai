@@ -131,9 +131,9 @@ export function DownloadGateModal({ target, clerkVersion, onClose, onSuccess }: 
               Google account below that you plan to connect inside Clerk — beta approval is account-specific.
             </p>
             <p className={styles.finePrint}>You can download and use Clerk immediately. Admin approval is only required for Gmail Sync and Google Calendar Sync.</p>
-            <p className={styles.finePrint}>
-              <strong>Heads up:</strong> after you click continue, your browser can take 30–45 seconds to actually
-              start the download. That's normal — please wait rather than clicking again or closing this.
+            <p className={styles.waitNotice}>
+              Heads up: after you click continue, your browser can take 30–45 seconds to actually start the
+              download. That's normal — please wait rather than clicking again or closing this.
             </p>
           </>
         )}
@@ -141,7 +141,7 @@ export function DownloadGateModal({ target, clerkVersion, onClose, onSuccess }: 
         {phase === 'success' && (
           <>
             <h3 className={styles.title}>You&apos;re all set — your download is starting.</h3>
-            <p className={styles.finePrint}>
+            <p className={styles.waitNotice}>
               Your browser can take 30–45 seconds to actually start the download. Please wait — no need to click
               anything else.
             </p>

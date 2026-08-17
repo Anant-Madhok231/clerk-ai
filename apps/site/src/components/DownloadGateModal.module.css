@@ -117,6 +117,17 @@
   color: var(--color-text-secondary);
 }
 
+.waitNotice {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-uncertain);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  line-height: var(--line-height-normal);
+  margin-top: var(--space-4);
+  margin-bottom: 0;
+}
+
 .successBox {
   background: var(--color-accent-soft);
   border-radius: var(--radius-md);

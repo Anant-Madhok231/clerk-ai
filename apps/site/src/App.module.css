@@ -170,6 +170,16 @@
   margin-top: var(--space-4);
 }
 
+.waitNotice {
+  text-align: center;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-uncertain);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: var(--space-4);
+}
+
 .privacyGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
