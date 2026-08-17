@@ -19,3 +19,4 @@ coverage/
 CLAUDE.md
 .claude/
 apps/site/.firebase/
+apps/site/dist-firebase/
